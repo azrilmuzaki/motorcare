@@ -1,0 +1,268 @@
+{
+  "settings": "Settings",
+  "language": "Language",
+  "theme": "Appearance",
+  "share_app": "Share app",
+  "common": {
+    "appName": "MotorCare",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "retry": "Try Again",
+    "logout": "Log Out",
+    "change": "Change",
+    "remove": "Remove",
+    "viewPhoto": "View Photo",
+    "km": "km",
+    "days": "{{count}} days"
+  },
+  "navigation": {
+    "home": "Home",
+    "history": "History",
+    "articles": "Articles",
+    "settings": "Settings",
+    "addVehicle": "Add Vehicle",
+    "articleDetail": "Article"
+  },
+  "vehicle": {
+    "types": {
+      "car": "Car",
+      "motorcycle": "Motorcycle",
+      "truck": "Truck"
+    },
+    "serviceTypes": {
+      "oilChange": "Oil Change",
+      "routineService": "Routine Service",
+      "tireReplacement": "Tire Replacement",
+      "tuneUp": "Tune Up",
+      "other": "Other"
+    },
+    "status": {
+      "ok": "Good",
+      "warning": "Attention",
+      "urgent": "Service Soon",
+      "overdue": "Overdue"
+    }
+  },
+  "messages": {
+    "loginFailed": "Login failed",
+    "unexpectedError": "Something went wrong",
+    "registerFailed": "Registration failed",
+    "vehiclesLoadFailed": "Failed to load vehicles",
+    "vehicleAddFailed": "Failed to add vehicle",
+    "vehicleUpdateFailed": "Failed to update vehicle",
+    "vehicleNotFound": "Vehicle not found",
+    "serviceHistoryLoadFailed": "Failed to load service history",
+    "serviceHistorySaveFailed": "Failed to save service history",
+    "serviceSaved": "Service history saved",
+    "historyLoadFailed": "Failed to load history",
+    "historyAddFailed": "Failed to add history",
+    "historyDeleteFailed": "Failed to delete history"
+  },
+  "errorBoundary": {
+    "title": "Oops! Something went wrong",
+    "unknown": "Unknown error",
+    "retry": "Try Again"
+  },
+  "auth": {
+    "login": {
+      "title": "SIGN IN",
+      "heroTitle": "MotorCare",
+      "heroSubtitle": "Track your vehicle service reminders more easily.",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Sign In",
+      "registerCta": "Don't have an account? Register",
+      "validation": {
+        "invalidEmail": "Invalid email format",
+        "emailRequired": "Email is required",
+        "passwordMin": "Password must be at least 6 characters",
+        "passwordRequired": "Password is required"
+      }
+    },
+    "register": {
+      "title": "Create a new account",
+      "subtitle": "Save vehicles, track service intervals, and organize maintenance history.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Full name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "name@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Minimum 6 characters",
+      "submit": "Register",
+      "backToLogin": "Back to login",
+      "successMessage": "Account created successfully. Check your email for verification before signing in.",
+      "validation": {
+        "nameMin": "Name must be at least 2 characters",
+        "nameRequired": "Name is required",
+        "invalidEmail": "Invalid email format",
+        "emailRequired": "Email is required",
+        "passwordMin": "Password must be at least 6 characters",
+        "passwordRequired": "Password is required"
+      }
+    }
+  },
+  "settingsScreen": {
+    "title": "Settings",
+    "description": "Manage language, appearance, notifications, and profile preferences in one place.",
+    "displayNameFallback": "MotorCare User",
+    "emailFallback": "No active email",
+    "avatarHint": "Tap the photo to change your profile avatar.",
+    "sectionTitle": "App preferences",
+    "sectionSubtitle": "Customize language, appearance, and app controls.",
+    "rows": {
+      "languageTitle": "Language",
+      "languageDescription": "Choose the interface language you prefer.",
+      "themeTitle": "Appearance",
+      "themeDescription": "Set light mode, dark mode, or follow the system.",
+      "notificationsTitle": "Service reminders",
+      "notificationsDescription": "Get notified before your next scheduled service.",
+      "shareTitle": "Share app",
+      "shareDescription": "Send the app recommendation to friends or family.",
+      "aboutTitle": "About app",
+      "privacyTitle": "Privacy",
+      "privacyDescription": "Vehicle data and service history stay tied to your account."
+    },
+    "languageSheet": {
+      "title": "Choose language",
+      "subtitle": "Changes will be applied instantly across the app."
+    },
+    "themeSheet": {
+      "title": "Choose appearance",
+      "subtitle": "Select the display mode that feels best on your device.",
+      "lightTitle": "Light",
+      "lightDescription": "Clean and bright interface.",
+      "darkTitle": "Dark",
+      "darkDescription": "More comfortable for night use.",
+      "systemTitle": "System",
+      "systemDescription": "Follow the device setting."
+    },
+    "languages": {
+      "id": {
+        "label": "Indonesia",
+        "description": "Main app language."
+      },
+      "en": {
+        "label": "English",
+        "description": "For a more global reading experience."
+      },
+      "ja": {
+        "label": "Japanese",
+        "description": "An extra option for personal preference."
+      },
+      "ar": {
+        "label": "Arabic",
+        "description": "Supports right-to-left reading."
+      }
+    },
+    "feedback": {
+      "galleryPermission": "Allow gallery access to update your profile photo.",
+      "photoUpdated": "Profile photo updated successfully.",
+      "photoRemoved": "Profile photo removed successfully.",
+      "galleryFailed": "Failed to open the gallery. Please try again.",
+      "rtlNotice": "Arabic layout direction may require restarting the app."
+    },
+    "shareMessage": "Try {{appName}}, a vehicle service reminder app."
+  },
+  "profilePhoto": {
+    "defaultName": "MotorCare Profile",
+    "activePhoto": "Current profile photo",
+    "emptyPhoto": "No saved profile photo yet",
+    "largePreview": "Large profile photo preview.",
+    "noPhotoPreview": "No profile photo has been selected yet."
+  },
+  "homeScreen": {
+    "eyebrow": "MotorCare Dashboard",
+    "title": "Track service without the hassle",
+    "subtitle": "All your vehicles, mileage, and service schedule in one place.",
+    "activeVehicles": "Active vehicles",
+    "needsAttention": "Needs attention",
+    "nextService": "{{serviceType}} for {{name}} in {{distance}}",
+    "sectionTitle": "Active vehicles",
+    "emptyTitle": "No Vehicles Yet",
+    "emptyDescription": "Add your first vehicle and start tracking service schedules with ease.",
+    "emptyAction": "+ Add Vehicle",
+    "fabLabel": "Add Vehicle",
+    "confirmTitle": "Complete Service",
+    "confirmMessage": "Has this vehicle already been serviced?",
+    "confirmAction": "Yes, Save"
+  },
+  "historyScreen": {
+    "eyebrow": "Maintenance",
+    "title": "Keep service history organized",
+    "subtitle": "Every serviced vehicle is automatically saved here so you can track maintenance more easily.",
+    "totalHistory": "Total history",
+    "activeVehicles": "Active vehicles",
+    "latestService": "Last service for {{vehicle}} on {{date}}",
+    "sectionTitle": "Latest history",
+    "emptyTitle": "No History Yet",
+    "emptyDescription": "Mark a vehicle as serviced from the garage page to save its history here.",
+    "emptyAction": "+ Add Vehicle",
+    "notesPrefix": "Notes"
+  },
+  "articlesScreen": {
+    "eyebrow": "Articles",
+    "title": "Insights worth reading",
+    "subtitle": "A collection of practical tips to take better care of your vehicle and make smarter service decisions.",
+    "availableCount": "{{count}} articles available",
+    "sectionTitle": "Latest reads",
+    "mediaLabel": "Editor's pick",
+    "emptyTitle": "No Articles Yet",
+    "emptyDescription": "Helpful vehicle tips and tricks will arrive soon."
+  },
+  "articleDetail": {
+    "publishedOn": "Published on {{date}}",
+    "contentTitle": "Article Content",
+    "copy": "Copy to Clipboard",
+    "copied": "Article copied to clipboard."
+  },
+  "addVehicle": {
+    "title": "Add Vehicle",
+    "introTitle": "Complete your vehicle profile",
+    "introSubtitle": "Enter mileage and service interval so reminders stay accurate.",
+    "fields": {
+      "nameLabel": "Vehicle Name",
+      "namePlaceholder": "Example: Honda Beat 2022",
+      "typeLabel": "Vehicle Type",
+      "serviceTypeLabel": "Service Type",
+      "serviceTypePlaceholder": "Choose a service type",
+      "customServiceTypeLabel": "Other Service Type",
+      "customServiceTypePlaceholder": "Example: Brake Pad Replacement",
+      "currentKmLabel": "Current Mileage",
+      "currentKmPlaceholder": "Example: 15000",
+      "targetIntervalLabel": "Service Interval (KM)",
+      "targetIntervalPlaceholder": "Example: 5000",
+      "dailyEstLabel": "Daily Usage Estimate (KM)",
+      "dailyEstPlaceholder": "Example: 20"
+    },
+    "preview": "Estimated next service: {{count}} days",
+    "save": "Save Vehicle",
+    "cancel": "Cancel",
+    "validation": {
+      "nameRequired": "Vehicle name is required",
+      "typeRequired": "Please choose a vehicle type",
+      "serviceTypeRequired": "Service type is required",
+      "currentKmRequired": "Current mileage is required",
+      "targetIntervalRequired": "Service interval is required",
+      "dailyEstRequired": "Daily estimate is required",
+      "number": "Please enter a number"
+    }
+  },
+  "vehicleCard": {
+    "daysRemaining": "{{count}} days remaining based on current usage",
+    "checkSoon": "Time to check the vehicle sooner",
+    "currentKm": "Current mileage",
+    "targetInterval": "Target interval",
+    "progress": "Progress to service",
+    "markAsServiced": "Mark as Serviced"
+  },
+  "serviceLogModal": {
+    "title": "Service History Detail",
+    "date": "Date",
+    "kilometer": "Mileage",
+    "notes": "Notes",
+    "noNotes": "No notes available.",
+    "empty": "No service data available to display."
+  }
+}

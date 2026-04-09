@@ -1,0 +1,8 @@
+node_modules/
+.expo/
+android/build/
+ios/build/
+.env
+.DS_Store
+dist-android-check/
+dist-android-repro/

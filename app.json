@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "MotorCare",
+    "slug": "motorcare",
+    "scheme": "motorcare",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "android": {
+      "package": "com.garasisaya.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.garasisaya.app",
+      "supportsTablet": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker",
+      "expo-font",
+      "expo-image-picker",
+      "expo-localization",
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "337977f9-ef5b-4526-b967-598cbf26e2ae"
+      }
+    }
+  }
+}

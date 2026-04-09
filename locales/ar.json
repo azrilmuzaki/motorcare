@@ -1,0 +1,268 @@
+{
+  "settings": "الإعدادات",
+  "language": "اللغة",
+  "theme": "المظهر",
+  "share_app": "مشاركة التطبيق",
+  "common": {
+    "appName": "MotorCare",
+    "ok": "موافق",
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "save": "حفظ",
+    "retry": "إعادة المحاولة",
+    "logout": "تسجيل الخروج",
+    "change": "تغيير",
+    "remove": "حذف",
+    "viewPhoto": "عرض الصورة",
+    "km": "كم",
+    "days": "{{count}} يوم"
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "history": "السجل",
+    "articles": "المقالات",
+    "settings": "الإعدادات",
+    "addVehicle": "إضافة مركبة",
+    "articleDetail": "مقال"
+  },
+  "vehicle": {
+    "types": {
+      "car": "سيارة",
+      "motorcycle": "دراجة نارية",
+      "truck": "شاحنة"
+    },
+    "serviceTypes": {
+      "oilChange": "تغيير الزيت",
+      "routineService": "صيانة دورية",
+      "tireReplacement": "تغيير الإطارات",
+      "tuneUp": "ضبط المحرك",
+      "other": "أخرى"
+    },
+    "status": {
+      "ok": "ممتاز",
+      "warning": "انتباه",
+      "urgent": "صيانة قريباً",
+      "overdue": "متأخر"
+    }
+  },
+  "messages": {
+    "loginFailed": "فشل تسجيل الدخول",
+    "unexpectedError": "حدث خطأ ما",
+    "registerFailed": "فشل التسجيل",
+    "vehiclesLoadFailed": "تعذر تحميل المركبات",
+    "vehicleAddFailed": "تعذر إضافة المركبة",
+    "vehicleUpdateFailed": "تعذر تحديث المركبة",
+    "vehicleNotFound": "المركبة غير موجودة",
+    "serviceHistoryLoadFailed": "تعذر تحميل سجل الصيانة",
+    "serviceHistorySaveFailed": "تعذر حفظ سجل الصيانة",
+    "serviceSaved": "تم حفظ سجل الصيانة",
+    "historyLoadFailed": "تعذر تحميل السجل",
+    "historyAddFailed": "تعذر إضافة السجل",
+    "historyDeleteFailed": "تعذر حذف السجل"
+  },
+  "errorBoundary": {
+    "title": "حدث خطأ",
+    "unknown": "خطأ غير معروف",
+    "retry": "إعادة المحاولة"
+  },
+  "auth": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "heroTitle": "MotorCare",
+      "heroSubtitle": "تابع تذكيرات صيانة مركبتك بسهولة أكبر.",
+      "emailLabel": "البريد الإلكتروني",
+      "passwordLabel": "كلمة المرور",
+      "submit": "دخول",
+      "registerCta": "ليس لديك حساب؟ أنشئ حساباً",
+      "validation": {
+        "invalidEmail": "صيغة البريد الإلكتروني غير صحيحة",
+        "emailRequired": "البريد الإلكتروني مطلوب",
+        "passwordMin": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+        "passwordRequired": "كلمة المرور مطلوبة"
+      }
+    },
+    "register": {
+      "title": "إنشاء حساب جديد",
+      "subtitle": "احفظ مركباتك وتابع فترات الصيانة ونظّم سجل العناية بها.",
+      "nameLabel": "الاسم",
+      "namePlaceholder": "الاسم الكامل",
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "name@email.com",
+      "passwordLabel": "كلمة المرور",
+      "passwordPlaceholder": "6 أحرف على الأقل",
+      "submit": "تسجيل",
+      "backToLogin": "العودة إلى تسجيل الدخول",
+      "successMessage": "تم إنشاء الحساب بنجاح. تحقق من بريدك الإلكتروني قبل تسجيل الدخول.",
+      "validation": {
+        "nameMin": "يجب أن يكون الاسم حرفين على الأقل",
+        "nameRequired": "الاسم مطلوب",
+        "invalidEmail": "صيغة البريد الإلكتروني غير صحيحة",
+        "emailRequired": "البريد الإلكتروني مطلوب",
+        "passwordMin": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+        "passwordRequired": "كلمة المرور مطلوبة"
+      }
+    }
+  },
+  "settingsScreen": {
+    "title": "الإعدادات",
+    "description": "أدر اللغة والمظهر والإشعارات وتفضيلات الملف الشخصي من مكان واحد.",
+    "displayNameFallback": "مستخدم MotorCare",
+    "emailFallback": "لا يوجد بريد إلكتروني نشط",
+    "avatarHint": "اضغط على الصورة لتغيير صورة الملف الشخصي.",
+    "sectionTitle": "تفضيلات التطبيق",
+    "sectionSubtitle": "خصص اللغة والمظهر وعناصر التحكم في التطبيق.",
+    "rows": {
+      "languageTitle": "اللغة",
+      "languageDescription": "اختر لغة الواجهة المفضلة لديك.",
+      "themeTitle": "المظهر",
+      "themeDescription": "اختر الوضع الفاتح أو الداكن أو اتباع النظام.",
+      "notificationsTitle": "تذكيرات الصيانة",
+      "notificationsDescription": "استلم إشعاراً قبل موعد الصيانة القادم.",
+      "shareTitle": "مشاركة التطبيق",
+      "shareDescription": "أرسل توصية التطبيق إلى الأصدقاء أو العائلة.",
+      "aboutTitle": "حول التطبيق",
+      "privacyTitle": "الخصوصية",
+      "privacyDescription": "تبقى بيانات المركبة وسجل الصيانة مرتبطة بحسابك."
+    },
+    "languageSheet": {
+      "title": "اختر اللغة",
+      "subtitle": "سيتم تطبيق التغييرات فوراً في جميع أنحاء التطبيق."
+    },
+    "themeSheet": {
+      "title": "اختر المظهر",
+      "subtitle": "حدد وضع العرض الأنسب لجهازك.",
+      "lightTitle": "فاتح",
+      "lightDescription": "واجهة واضحة ومشرقة.",
+      "darkTitle": "داكن",
+      "darkDescription": "أكثر راحة في الليل.",
+      "systemTitle": "النظام",
+      "systemDescription": "اتبع إعدادات الجهاز."
+    },
+    "languages": {
+      "id": {
+        "label": "الإندونيسية",
+        "description": "لغة التطبيق الأساسية."
+      },
+      "en": {
+        "label": "الإنجليزية",
+        "description": "لتجربة قراءة أكثر عالمية."
+      },
+      "ja": {
+        "label": "اليابانية",
+        "description": "خيار إضافي للتفضيل الشخصي."
+      },
+      "ar": {
+        "label": "العربية",
+        "description": "تدعم القراءة من اليمين إلى اليسار."
+      }
+    },
+    "feedback": {
+      "galleryPermission": "يرجى السماح بالوصول إلى المعرض لتغيير صورة الملف الشخصي.",
+      "photoUpdated": "تم تحديث صورة الملف الشخصي بنجاح.",
+      "photoRemoved": "تم حذف صورة الملف الشخصي بنجاح.",
+      "galleryFailed": "تعذر فتح المعرض. حاول مرة أخرى.",
+      "rtlNotice": "قد يتطلب اتجاه الواجهة العربية إعادة تشغيل التطبيق."
+    },
+    "shareMessage": "جرّب {{appName}}، تطبيق تذكير بصيانة المركبات."
+  },
+  "profilePhoto": {
+    "defaultName": "ملف MotorCare",
+    "activePhoto": "صورة الملف الحالية",
+    "emptyPhoto": "لا توجد صورة ملف محفوظة بعد",
+    "largePreview": "معاينة كبيرة لصورة الملف الشخصي.",
+    "noPhotoPreview": "لم يتم اختيار صورة ملف شخصي بعد."
+  },
+  "homeScreen": {
+    "eyebrow": "لوحة MotorCare",
+    "title": "تابع الصيانة بدون تعقيد",
+    "subtitle": "كل مركباتك وعدّاد الكيلومترات وجدول الصيانة في مكان واحد.",
+    "activeVehicles": "المركبات النشطة",
+    "needsAttention": "تحتاج انتباهاً",
+    "nextService": "{{serviceType}} لـ {{name}} خلال {{distance}}",
+    "sectionTitle": "المركبات النشطة",
+    "emptyTitle": "لا توجد مركبات بعد",
+    "emptyDescription": "أضف مركبتك الأولى وابدأ متابعة مواعيد الصيانة بسهولة.",
+    "emptyAction": "+ إضافة مركبة",
+    "fabLabel": "إضافة مركبة",
+    "confirmTitle": "إنهاء الصيانة",
+    "confirmMessage": "هل تم الانتهاء من صيانة هذه المركبة؟",
+    "confirmAction": "نعم، احفظ"
+  },
+  "historyScreen": {
+    "eyebrow": "الصيانة",
+    "title": "حافظ على سجل الصيانة منظماً",
+    "subtitle": "كل مركبة تم الانتهاء من صيانتها تُحفظ هنا تلقائياً لتسهيل المتابعة.",
+    "totalHistory": "إجمالي السجل",
+    "activeVehicles": "المركبات النشطة",
+    "latestService": "آخر صيانة لـ {{vehicle}} في {{date}}",
+    "sectionTitle": "أحدث السجلات",
+    "emptyTitle": "لا يوجد سجل بعد",
+    "emptyDescription": "قم بتعليم المركبة على أنها تمت صيانتها من صفحة المرآب لحفظ سجلها هنا.",
+    "emptyAction": "+ إضافة مركبة",
+    "notesPrefix": "ملاحظات"
+  },
+  "articlesScreen": {
+    "eyebrow": "المقالات",
+    "title": "محتوى مفيد للقراءة",
+    "subtitle": "مجموعة من النصائح العملية للعناية بالمركبة واتخاذ قرارات صيانة أفضل.",
+    "availableCount": "{{count}} مقالاً متاحاً",
+    "sectionTitle": "أحدث القراءات",
+    "mediaLabel": "مختارات",
+    "emptyTitle": "لا توجد مقالات بعد",
+    "emptyDescription": "ستصل قريباً نصائح وحيل مفيدة للمركبات."
+  },
+  "articleDetail": {
+    "publishedOn": "نُشر في {{date}}",
+    "contentTitle": "محتوى المقال",
+    "copy": "نسخ إلى الحافظة",
+    "copied": "تم نسخ المقال إلى الحافظة."
+  },
+  "addVehicle": {
+    "title": "إضافة مركبة",
+    "introTitle": "أكمل ملف المركبة",
+    "introSubtitle": "أدخل الكيلومترات وفترة الصيانة لتكون التذكيرات أدق.",
+    "fields": {
+      "nameLabel": "اسم المركبة",
+      "namePlaceholder": "مثال: Honda Beat 2022",
+      "typeLabel": "نوع المركبة",
+      "serviceTypeLabel": "نوع الصيانة",
+      "serviceTypePlaceholder": "اختر نوع الصيانة",
+      "customServiceTypeLabel": "نوع صيانة آخر",
+      "customServiceTypePlaceholder": "مثال: تغيير بطانات الفرامل",
+      "currentKmLabel": "العداد الحالي",
+      "currentKmPlaceholder": "مثال: 15000",
+      "targetIntervalLabel": "فترة الصيانة (كم)",
+      "targetIntervalPlaceholder": "مثال: 5000",
+      "dailyEstLabel": "معدل الاستخدام اليومي (كم)",
+      "dailyEstPlaceholder": "مثال: 20"
+    },
+    "preview": "الصيانة القادمة المتوقعة: {{count}} يوم",
+    "save": "حفظ المركبة",
+    "cancel": "إلغاء",
+    "validation": {
+      "nameRequired": "اسم المركبة مطلوب",
+      "typeRequired": "يرجى اختيار نوع المركبة",
+      "serviceTypeRequired": "نوع الصيانة مطلوب",
+      "currentKmRequired": "العداد الحالي مطلوب",
+      "targetIntervalRequired": "فترة الصيانة مطلوبة",
+      "dailyEstRequired": "تقدير الاستخدام اليومي مطلوب",
+      "number": "يرجى إدخال رقم"
+    }
+  },
+  "vehicleCard": {
+    "daysRemaining": "متبقٍ {{count}} يوم حسب نمط الاستخدام الحالي",
+    "checkSoon": "حان وقت فحص المركبة قريباً",
+    "currentKm": "العداد الحالي",
+    "targetInterval": "الفترة المستهدفة",
+    "progress": "التقدم نحو الصيانة",
+    "markAsServiced": "تمت الصيانة"
+  },
+  "serviceLogModal": {
+    "title": "تفاصيل سجل الصيانة",
+    "date": "التاريخ",
+    "kilometer": "المسافة",
+    "notes": "ملاحظات",
+    "noNotes": "لا توجد ملاحظات.",
+    "empty": "لا توجد بيانات صيانة لعرضها."
+  }
+}

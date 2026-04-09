@@ -1,0 +1,268 @@
+{
+  "settings": "Pengaturan",
+  "language": "Bahasa",
+  "theme": "Tampilan",
+  "share_app": "Bagikan aplikasi",
+  "common": {
+    "appName": "MotorCare",
+    "ok": "OK",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "save": "Simpan",
+    "retry": "Coba Lagi",
+    "logout": "Keluar",
+    "change": "Ganti",
+    "remove": "Hapus",
+    "viewPhoto": "Lihat Foto",
+    "km": "km",
+    "days": "{{count}} hari"
+  },
+  "navigation": {
+    "home": "Beranda",
+    "history": "Riwayat",
+    "articles": "Artikel",
+    "settings": "Pengaturan",
+    "addVehicle": "Tambah Kendaraan",
+    "articleDetail": "Artikel"
+  },
+  "vehicle": {
+    "types": {
+      "car": "Mobil",
+      "motorcycle": "Motor",
+      "truck": "Truk"
+    },
+    "serviceTypes": {
+      "oilChange": "Ganti Oli",
+      "routineService": "Servis Rutin",
+      "tireReplacement": "Ganti Ban",
+      "tuneUp": "Tune Up",
+      "other": "Lainnya"
+    },
+    "status": {
+      "ok": "Aman",
+      "warning": "Perhatian",
+      "urgent": "Segera Servis",
+      "overdue": "Sudah Lewat"
+    }
+  },
+  "messages": {
+    "loginFailed": "Login gagal",
+    "unexpectedError": "Terjadi kesalahan",
+    "registerFailed": "Registrasi gagal",
+    "vehiclesLoadFailed": "Gagal memuat kendaraan",
+    "vehicleAddFailed": "Gagal menambah kendaraan",
+    "vehicleUpdateFailed": "Gagal mengupdate kendaraan",
+    "vehicleNotFound": "Kendaraan tidak ditemukan",
+    "serviceHistoryLoadFailed": "Gagal memuat riwayat servis",
+    "serviceHistorySaveFailed": "Gagal menyimpan riwayat servis",
+    "serviceSaved": "Servis berhasil disimpan",
+    "historyLoadFailed": "Gagal memuat riwayat",
+    "historyAddFailed": "Gagal menambah riwayat",
+    "historyDeleteFailed": "Gagal menghapus riwayat"
+  },
+  "errorBoundary": {
+    "title": "Oops! Terjadi kesalahan",
+    "unknown": "Kesalahan tidak diketahui",
+    "retry": "Coba Lagi"
+  },
+  "auth": {
+    "login": {
+      "title": "MASUK",
+      "heroTitle": "MotorCare",
+      "heroSubtitle": "Pantau servis kendaraanmu dengan lebih mudah.",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Masuk",
+      "registerCta": "Belum punya akun? Daftar",
+      "validation": {
+        "invalidEmail": "Format email tidak valid",
+        "emailRequired": "Email wajib diisi",
+        "passwordMin": "Password minimal 6 karakter",
+        "passwordRequired": "Password wajib diisi"
+      }
+    },
+    "register": {
+      "title": "Buat akun baru",
+      "subtitle": "Simpan kendaraan, pantau interval servis, dan rapikan histori perawatan.",
+      "nameLabel": "Nama",
+      "namePlaceholder": "Nama lengkap",
+      "emailLabel": "Email",
+      "emailPlaceholder": "nama@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Minimal 6 karakter",
+      "submit": "Daftar",
+      "backToLogin": "Kembali ke login",
+      "successMessage": "Akun berhasil dibuat. Cek email Anda untuk verifikasi sebelum login.",
+      "validation": {
+        "nameMin": "Nama minimal 2 karakter",
+        "nameRequired": "Nama wajib diisi",
+        "invalidEmail": "Format email tidak valid",
+        "emailRequired": "Email wajib diisi",
+        "passwordMin": "Password minimal 6 karakter",
+        "passwordRequired": "Password wajib diisi"
+      }
+    }
+  },
+  "settingsScreen": {
+    "title": "Pengaturan",
+    "description": "Atur bahasa, tampilan, notifikasi, dan preferensi profilmu dari satu tempat.",
+    "displayNameFallback": "Pengguna MotorCare",
+    "emailFallback": "Belum ada email aktif",
+    "avatarHint": "Ketuk foto untuk mengganti avatar profil.",
+    "sectionTitle": "Preferensi aplikasi",
+    "sectionSubtitle": "Personalisasi bahasa, tampilan, dan kontrol aplikasi.",
+    "rows": {
+      "languageTitle": "Bahasa",
+      "languageDescription": "Pilih bahasa antarmuka yang paling nyaman.",
+      "themeTitle": "Tampilan",
+      "themeDescription": "Atur mode terang, gelap, atau ikuti sistem.",
+      "notificationsTitle": "Pengingat servis",
+      "notificationsDescription": "Notifikasi sebelum jadwal servis tiba.",
+      "shareTitle": "Bagikan aplikasi",
+      "shareDescription": "Kirim rekomendasi aplikasi ke teman atau keluarga.",
+      "aboutTitle": "Tentang aplikasi",
+      "privacyTitle": "Privasi",
+      "privacyDescription": "Data kendaraan dan riwayat servis tersimpan di akunmu."
+    },
+    "languageSheet": {
+      "title": "Pilih bahasa",
+      "subtitle": "Perubahan akan langsung diterapkan di seluruh aplikasi."
+    },
+    "themeSheet": {
+      "title": "Pilih tampilan",
+      "subtitle": "Tentukan mode tampilan yang paling nyaman di perangkatmu.",
+      "lightTitle": "Terang",
+      "lightDescription": "Tampilan cerah dan bersih.",
+      "darkTitle": "Gelap",
+      "darkDescription": "Lebih nyaman saat malam hari.",
+      "systemTitle": "Sistem",
+      "systemDescription": "Mengikuti pengaturan perangkat."
+    },
+    "languages": {
+      "id": {
+        "label": "Indonesia",
+        "description": "Bahasa utama aplikasi."
+      },
+      "en": {
+        "label": "English",
+        "description": "Untuk pengalaman membaca yang lebih global."
+      },
+      "ja": {
+        "label": "Jepang",
+        "description": "Pilihan tambahan untuk preferensi personal."
+      },
+      "ar": {
+        "label": "Arab",
+        "description": "Mendukung pembacaan dari kanan ke kiri."
+      }
+    },
+    "feedback": {
+      "galleryPermission": "Izinkan akses galeri untuk mengganti foto profil.",
+      "photoUpdated": "Foto profil berhasil diperbarui.",
+      "photoRemoved": "Foto profil berhasil dihapus.",
+      "galleryFailed": "Gagal membuka galeri. Coba lagi.",
+      "rtlNotice": "Arah tampilan untuk bahasa Arab mungkin memerlukan restart aplikasi."
+    },
+    "shareMessage": "Coba {{appName}}, aplikasi pengingat servis kendaraan."
+  },
+  "profilePhoto": {
+    "defaultName": "Profil MotorCare",
+    "activePhoto": "Foto profil aktif",
+    "emptyPhoto": "Belum ada foto profil tersimpan",
+    "largePreview": "Preview foto profil dalam ukuran besar.",
+    "noPhotoPreview": "Belum ada foto profil yang dipilih."
+  },
+  "homeScreen": {
+    "eyebrow": "Dashboard MotorCare",
+    "title": "Pantau servis tanpa ribet",
+    "subtitle": "Semua kendaraan, kilometer, dan jadwal servis ada di satu tempat.",
+    "activeVehicles": "Kendaraan aktif",
+    "needsAttention": "Perlu perhatian",
+    "nextService": "{{serviceType}} untuk {{name}} dalam {{distance}}",
+    "sectionTitle": "Kendaraan aktif",
+    "emptyTitle": "Belum Ada Kendaraan",
+    "emptyDescription": "Tambahkan kendaraan pertamamu dan mulai pantau jadwal servis dengan mudah.",
+    "emptyAction": "+ Tambah Kendaraan",
+    "fabLabel": "Tambah Kendaraan",
+    "confirmTitle": "Selesaikan Servis",
+    "confirmMessage": "Apakah kendaraan ini sudah selesai diservis?",
+    "confirmAction": "Ya, Simpan"
+  },
+  "historyScreen": {
+    "eyebrow": "Perawatan",
+    "title": "Riwayat servis tetap rapi",
+    "subtitle": "Setiap kendaraan yang selesai diservis akan otomatis tersimpan di sini untuk memudahkan pelacakan perawatan.",
+    "totalHistory": "Total riwayat",
+    "activeVehicles": "Kendaraan aktif",
+    "latestService": "Servis terakhir {{vehicle}} pada {{date}}",
+    "sectionTitle": "Riwayat terbaru",
+    "emptyTitle": "Belum Ada Riwayat",
+    "emptyDescription": "Tandai kendaraan sebagai selesai diservis dari halaman garasi untuk menyimpan riwayatnya di sini.",
+    "emptyAction": "+ Tambah Kendaraan",
+    "notesPrefix": "Catatan"
+  },
+  "articlesScreen": {
+    "eyebrow": "Artikel",
+    "title": "Insight yang enak dibaca",
+    "subtitle": "Kumpulan tips ringan untuk merawat kendaraan dan mengambil keputusan servis yang lebih tepat.",
+    "availableCount": "{{count}} artikel tersedia",
+    "sectionTitle": "Bacaan terbaru",
+    "mediaLabel": "Bacaan pilihan",
+    "emptyTitle": "Belum Ada Artikel",
+    "emptyDescription": "Artikel tips dan trik kendaraan akan hadir segera."
+  },
+  "articleDetail": {
+    "publishedOn": "Dipublikasikan {{date}}",
+    "contentTitle": "Isi Artikel",
+    "copy": "Salin ke Clipboard",
+    "copied": "Artikel disalin ke clipboard."
+  },
+  "addVehicle": {
+    "title": "Tambah Kendaraan",
+    "introTitle": "Lengkapi profil kendaraan",
+    "introSubtitle": "Masukkan kilometer dan interval servis agar pengingat yang muncul lebih akurat.",
+    "fields": {
+      "nameLabel": "Nama Kendaraan",
+      "namePlaceholder": "Contoh: Honda Beat 2022",
+      "typeLabel": "Jenis Kendaraan",
+      "serviceTypeLabel": "Jenis Servis",
+      "serviceTypePlaceholder": "Pilih jenis servis",
+      "customServiceTypeLabel": "Jenis Servis Lainnya",
+      "customServiceTypePlaceholder": "Contoh: Ganti Kampas Rem",
+      "currentKmLabel": "KM Saat Ini",
+      "currentKmPlaceholder": "Contoh: 15000",
+      "targetIntervalLabel": "Interval Servis (KM)",
+      "targetIntervalPlaceholder": "Contoh: 5000",
+      "dailyEstLabel": "Estimasi Pemakaian Harian (KM)",
+      "dailyEstPlaceholder": "Contoh: 20"
+    },
+    "preview": "Estimasi servis berikutnya: {{count}} hari",
+    "save": "Simpan Kendaraan",
+    "cancel": "Batal",
+    "validation": {
+      "nameRequired": "Nama kendaraan wajib diisi",
+      "typeRequired": "Pilih jenis kendaraan",
+      "serviceTypeRequired": "Jenis servis wajib diisi",
+      "currentKmRequired": "KM saat ini wajib diisi",
+      "targetIntervalRequired": "Interval servis wajib diisi",
+      "dailyEstRequired": "Estimasi harian wajib diisi",
+      "number": "Masukkan angka"
+    }
+  },
+  "vehicleCard": {
+    "daysRemaining": "{{count}} hari lagi pada pola pemakaian saat ini",
+    "checkSoon": "Saatnya cek kendaraan lebih cepat",
+    "currentKm": "KM sekarang",
+    "targetInterval": "Interval target",
+    "progress": "Progress menuju servis",
+    "markAsServiced": "Selesai Diservis"
+  },
+  "serviceLogModal": {
+    "title": "Detail Riwayat Servis",
+    "date": "Tanggal",
+    "kilometer": "Kilometer",
+    "notes": "Catatan",
+    "noNotes": "Tidak ada catatan.",
+    "empty": "Belum ada data servis untuk ditampilkan."
+  }
+}

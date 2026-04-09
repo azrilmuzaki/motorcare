@@ -1,0 +1,268 @@
+{
+  "settings": "設定",
+  "language": "言語",
+  "theme": "テーマ",
+  "share_app": "アプリを共有",
+  "common": {
+    "appName": "MotorCare",
+    "ok": "OK",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "save": "保存",
+    "retry": "再試行",
+    "logout": "ログアウト",
+    "change": "変更",
+    "remove": "削除",
+    "viewPhoto": "写真を見る",
+    "km": "km",
+    "days": "{{count}}日"
+  },
+  "navigation": {
+    "home": "ホーム",
+    "history": "履歴",
+    "articles": "記事",
+    "settings": "設定",
+    "addVehicle": "車両を追加",
+    "articleDetail": "記事"
+  },
+  "vehicle": {
+    "types": {
+      "car": "車",
+      "motorcycle": "バイク",
+      "truck": "トラック"
+    },
+    "serviceTypes": {
+      "oilChange": "オイル交換",
+      "routineService": "定期点検",
+      "tireReplacement": "タイヤ交換",
+      "tuneUp": "チューンアップ",
+      "other": "その他"
+    },
+    "status": {
+      "ok": "良好",
+      "warning": "注意",
+      "urgent": "早めに整備",
+      "overdue": "期限超過"
+    }
+  },
+  "messages": {
+    "loginFailed": "ログインに失敗しました",
+    "unexpectedError": "エラーが発生しました",
+    "registerFailed": "登録に失敗しました",
+    "vehiclesLoadFailed": "車両を読み込めませんでした",
+    "vehicleAddFailed": "車両を追加できませんでした",
+    "vehicleUpdateFailed": "車両を更新できませんでした",
+    "vehicleNotFound": "車両が見つかりません",
+    "serviceHistoryLoadFailed": "整備履歴を読み込めませんでした",
+    "serviceHistorySaveFailed": "整備履歴を保存できませんでした",
+    "serviceSaved": "整備履歴を保存しました",
+    "historyLoadFailed": "履歴を読み込めませんでした",
+    "historyAddFailed": "履歴を追加できませんでした",
+    "historyDeleteFailed": "履歴を削除できませんでした"
+  },
+  "errorBoundary": {
+    "title": "問題が発生しました",
+    "unknown": "不明なエラーです",
+    "retry": "再試行"
+  },
+  "auth": {
+    "login": {
+      "title": "ログイン",
+      "heroTitle": "MotorCare",
+      "heroSubtitle": "車両の整備リマインダーをもっと簡単に管理できます。",
+      "emailLabel": "メール",
+      "passwordLabel": "パスワード",
+      "submit": "ログイン",
+      "registerCta": "アカウントをお持ちでないですか？ 登録",
+      "validation": {
+        "invalidEmail": "メール形式が正しくありません",
+        "emailRequired": "メールは必須です",
+        "passwordMin": "パスワードは6文字以上必要です",
+        "passwordRequired": "パスワードは必須です"
+      }
+    },
+    "register": {
+      "title": "新しいアカウントを作成",
+      "subtitle": "車両を保存し、整備間隔を追跡し、メンテナンス履歴を整理できます。",
+      "nameLabel": "名前",
+      "namePlaceholder": "氏名",
+      "emailLabel": "メール",
+      "emailPlaceholder": "name@email.com",
+      "passwordLabel": "パスワード",
+      "passwordPlaceholder": "6文字以上",
+      "submit": "登録",
+      "backToLogin": "ログインに戻る",
+      "successMessage": "アカウントが作成されました。ログイン前に確認メールをご確認ください。",
+      "validation": {
+        "nameMin": "名前は2文字以上必要です",
+        "nameRequired": "名前は必須です",
+        "invalidEmail": "メール形式が正しくありません",
+        "emailRequired": "メールは必須です",
+        "passwordMin": "パスワードは6文字以上必要です",
+        "passwordRequired": "パスワードは必須です"
+      }
+    }
+  },
+  "settingsScreen": {
+    "title": "設定",
+    "description": "言語、表示、通知、プロフィール設定をまとめて管理します。",
+    "displayNameFallback": "MotorCareユーザー",
+    "emailFallback": "有効なメールがありません",
+    "avatarHint": "写真をタップしてプロフィール画像を変更します。",
+    "sectionTitle": "アプリ設定",
+    "sectionSubtitle": "言語、表示、アプリ操作をカスタマイズします。",
+    "rows": {
+      "languageTitle": "言語",
+      "languageDescription": "使いやすい表示言語を選択します。",
+      "themeTitle": "テーマ",
+      "themeDescription": "ライト、ダーク、またはシステム設定に従います。",
+      "notificationsTitle": "整備リマインダー",
+      "notificationsDescription": "次回整備の前に通知します。",
+      "shareTitle": "アプリを共有",
+      "shareDescription": "友人や家族にアプリをおすすめします。",
+      "aboutTitle": "アプリについて",
+      "privacyTitle": "プライバシー",
+      "privacyDescription": "車両データと整備履歴はあなたのアカウントに保存されます。"
+    },
+    "languageSheet": {
+      "title": "言語を選択",
+      "subtitle": "変更はアプリ全体にすぐ反映されます。"
+    },
+    "themeSheet": {
+      "title": "表示モードを選択",
+      "subtitle": "端末で見やすい表示モードを選んでください。",
+      "lightTitle": "ライト",
+      "lightDescription": "明るくすっきりした表示です。",
+      "darkTitle": "ダーク",
+      "darkDescription": "夜間でも見やすい表示です。",
+      "systemTitle": "システム",
+      "systemDescription": "端末設定に従います。"
+    },
+    "languages": {
+      "id": {
+        "label": "インドネシア語",
+        "description": "アプリの主要言語です。"
+      },
+      "en": {
+        "label": "英語",
+        "description": "より国際的な読みやすさのため。"
+      },
+      "ja": {
+        "label": "日本語",
+        "description": "個人設定向けの追加オプションです。"
+      },
+      "ar": {
+        "label": "アラビア語",
+        "description": "右から左への表示に対応します。"
+      }
+    },
+    "feedback": {
+      "galleryPermission": "プロフィール写真を変更するにはギャラリーへのアクセスを許可してください。",
+      "photoUpdated": "プロフィール写真を更新しました。",
+      "photoRemoved": "プロフィール写真を削除しました。",
+      "galleryFailed": "ギャラリーを開けませんでした。もう一度お試しください。",
+      "rtlNotice": "アラビア語の表示方向はアプリの再起動が必要な場合があります。"
+    },
+    "shareMessage": "{{appName}} をお試しください。車両整備リマインダーアプリです。"
+  },
+  "profilePhoto": {
+    "defaultName": "MotorCareプロフィール",
+    "activePhoto": "現在のプロフィール写真",
+    "emptyPhoto": "保存されたプロフィール写真はありません",
+    "largePreview": "大きなプロフィール写真のプレビューです。",
+    "noPhotoPreview": "まだプロフィール写真が選択されていません。"
+  },
+  "homeScreen": {
+    "eyebrow": "MotorCareダッシュボード",
+    "title": "整備管理をもっと簡単に",
+    "subtitle": "車両、走行距離、整備スケジュールを一か所で確認できます。",
+    "activeVehicles": "利用中の車両",
+    "needsAttention": "要確認",
+    "nextService": "{{name}} の{{serviceType}}まで {{distance}}",
+    "sectionTitle": "利用中の車両",
+    "emptyTitle": "車両がまだありません",
+    "emptyDescription": "最初の車両を追加して、整備スケジュールを簡単に管理しましょう。",
+    "emptyAction": "+ 車両を追加",
+    "fabLabel": "車両を追加",
+    "confirmTitle": "整備完了",
+    "confirmMessage": "この車両の整備は完了しましたか？",
+    "confirmAction": "はい、保存"
+  },
+  "historyScreen": {
+    "eyebrow": "メンテナンス",
+    "title": "整備履歴を見やすく整理",
+    "subtitle": "整備が完了した車両は自動的にここへ保存され、履歴を簡単に追跡できます。",
+    "totalHistory": "履歴合計",
+    "activeVehicles": "利用中の車両",
+    "latestService": "{{vehicle}} の最新整備日 {{date}}",
+    "sectionTitle": "最新の履歴",
+    "emptyTitle": "履歴がまだありません",
+    "emptyDescription": "ガレージ画面で車両を整備完了にすると、履歴がここに保存されます。",
+    "emptyAction": "+ 車両を追加",
+    "notesPrefix": "メモ"
+  },
+  "articlesScreen": {
+    "eyebrow": "記事",
+    "title": "読みやすいインサイト",
+    "subtitle": "車両をより良くケアし、より賢く整備判断するためのヒント集です。",
+    "availableCount": "{{count}} 件の記事",
+    "sectionTitle": "最新記事",
+    "mediaLabel": "おすすめ",
+    "emptyTitle": "記事はまだありません",
+    "emptyDescription": "車両に関する便利なヒントはまもなく追加されます。"
+  },
+  "articleDetail": {
+    "publishedOn": "公開日 {{date}}",
+    "contentTitle": "記事内容",
+    "copy": "クリップボードにコピー",
+    "copied": "記事をクリップボードにコピーしました。"
+  },
+  "addVehicle": {
+    "title": "車両を追加",
+    "introTitle": "車両プロフィールを入力",
+    "introSubtitle": "走行距離と整備間隔を入力して、通知をより正確にします。",
+    "fields": {
+      "nameLabel": "車両名",
+      "namePlaceholder": "例: Honda Beat 2022",
+      "typeLabel": "車両タイプ",
+      "serviceTypeLabel": "整備タイプ",
+      "serviceTypePlaceholder": "整備タイプを選択",
+      "customServiceTypeLabel": "その他の整備タイプ",
+      "customServiceTypePlaceholder": "例: ブレーキパッド交換",
+      "currentKmLabel": "現在の走行距離",
+      "currentKmPlaceholder": "例: 15000",
+      "targetIntervalLabel": "整備間隔 (KM)",
+      "targetIntervalPlaceholder": "例: 5000",
+      "dailyEstLabel": "1日の使用目安 (KM)",
+      "dailyEstPlaceholder": "例: 20"
+    },
+    "preview": "次回整備の目安: {{count}}日",
+    "save": "車両を保存",
+    "cancel": "キャンセル",
+    "validation": {
+      "nameRequired": "車両名は必須です",
+      "typeRequired": "車両タイプを選択してください",
+      "serviceTypeRequired": "整備タイプは必須です",
+      "currentKmRequired": "現在の走行距離は必須です",
+      "targetIntervalRequired": "整備間隔は必須です",
+      "dailyEstRequired": "1日の使用目安は必須です",
+      "number": "数字を入力してください"
+    }
+  },
+  "vehicleCard": {
+    "daysRemaining": "現在の使用状況ではあと{{count}}日",
+    "checkSoon": "早めの点検をおすすめします",
+    "currentKm": "現在の走行距離",
+    "targetInterval": "目標間隔",
+    "progress": "整備までの進捗",
+    "markAsServiced": "整備完了にする"
+  },
+  "serviceLogModal": {
+    "title": "整備履歴の詳細",
+    "date": "日付",
+    "kilometer": "走行距離",
+    "notes": "メモ",
+    "noNotes": "メモはありません。",
+    "empty": "表示できる整備データがありません。"
+  }
+}
