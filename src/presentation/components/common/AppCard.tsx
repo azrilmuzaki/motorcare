@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
+    padding: Spacing.sm,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
     shadowColor: Colors.black,

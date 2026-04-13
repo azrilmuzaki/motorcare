@@ -39,10 +39,16 @@
       "other": "Lainnya"
     },
     "status": {
-      "ok": "Aman",
-      "warning": "Perhatian",
+      "ok": "Baik",
+      "warning": "Perlu Perhatian",
       "urgent": "Segera Servis",
-      "overdue": "Sudah Lewat"
+      "overdue": "Terlambat"
+    }
+  },
+  "vehicles": {
+    "empty": {
+      "title": "Belum Ada Kendaraan",
+      "description": "Tambahkan kendaraan pertamamu untuk mulai memantau servis."
     }
   },
   "messages": {
@@ -144,8 +150,8 @@
         "description": "Bahasa utama aplikasi."
       },
       "en": {
-        "label": "English",
-        "description": "Untuk pengalaman membaca yang lebih global."
+        "label": "Inggris",
+        "description": "Pilihan bahasa Inggris."
       },
       "ja": {
         "label": "Jepang",

@@ -45,6 +45,12 @@
       "overdue": "期限超過"
     }
   },
+  "vehicles": {
+    "empty": {
+      "title": "車両がありません",
+      "description": "最初の車両を追加して、整備スケジュールの追跡を開始してください。"
+    }
+  },
   "messages": {
     "loginFailed": "ログインに失敗しました",
     "unexpectedError": "エラーが発生しました",

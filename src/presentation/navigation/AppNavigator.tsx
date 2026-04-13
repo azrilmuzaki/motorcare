@@ -6,8 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { Colors } from '@core/theme/colors';
 import { LoadingOverlay } from '@presentation/components/common/LoadingOverlay';
 import { useTheme } from '@presentation/hooks/useTheme';
-import { ArticleDetailScreen } from '@presentation/screens/article/ArticleDetailScreen';
 import { AddVehicleScreen } from '@presentation/screens/home/AddVehicleScreen';
+import { AddReminderScreen } from '@presentation/screens/home/AddReminderScreen';
+import { AddServiceScreen } from '@presentation/screens/home/AddServiceScreen';
+import { UpdateOdometerScreen } from '@presentation/screens/home/UpdateOdometerScreen';
+import { VehicleDetailScreen } from '@presentation/screens/home/VehicleDetailScreen';
+import { VehiclesListScreen } from '@presentation/screens/vehicles/VehiclesListScreen';
 import { useAuthStore } from '@presentation/store/auth.store';
 
 import { AuthNavigator } from './AuthNavigator';
@@ -81,11 +85,43 @@ export function AppNavigator() {
               }}
             />
             <Stack.Screen
-              name="ArticleDetail"
-              component={ArticleDetailScreen}
+              name="AddReminder"
+              component={AddReminderScreen}
               options={{
                 headerShown: true,
-                title: t('navigation.articleDetail'),
+                title: 'Tambah Pengingat',
+              }}
+            />
+            <Stack.Screen
+              name="AddService"
+              component={AddServiceScreen}
+              options={{
+                headerShown: true,
+                title: 'Tambah Servis',
+              }}
+            />
+            <Stack.Screen
+              name="UpdateOdometer"
+              component={UpdateOdometerScreen}
+              options={{
+                headerShown: true,
+                title: 'Perbarui Odometer',
+              }}
+            />
+            <Stack.Screen
+              name="VehicleDetail"
+              component={VehicleDetailScreen}
+              options={{
+                headerShown: true,
+                title: 'Detail Kendaraan',
+              }}
+            />
+            <Stack.Screen
+              name="VehiclesList"
+              component={VehiclesListScreen}
+              options={{
+                headerShown: true,
+                title: 'Semua Kendaraan',
               }}
             />
           </>

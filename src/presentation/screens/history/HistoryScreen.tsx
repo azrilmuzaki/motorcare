@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   FlatList,
   ListRenderItem,
@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Swipeable from 'react-native-gesture-handler/Swipeable';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { format } from 'date-fns';
 import { Snackbar, Text } from 'react-native-paper';
@@ -32,8 +31,6 @@ export function HistoryScreen() {
   const { colors, isDark } = useTheme();
   const { t, i18n } = useTranslation();
   const { user } = useAuthStore();
-  const openSwipeableIdRef = useRef<string | null>(null);
-  const openSwipeableRef = useRef<Swipeable | null>(null);
   const {
     fetchVehicles,
     vehicles,
@@ -43,7 +40,6 @@ export function HistoryScreen() {
     error,
     clearError,
     fetchServiceHistory,
-    removeHistory,
   } = useVehicleStore();
 
   const refreshHistory = useCallback(() => {
@@ -63,42 +59,11 @@ export function HistoryScreen() {
 
   const latestLog = useMemo(() => serviceHistory[0] ?? null, [serviceHistory]);
 
-  const handleSwipeableOpen = useCallback((id: string, swipeable: Swipeable | null) => {
-    if (openSwipeableIdRef.current && openSwipeableIdRef.current !== id) {
-      openSwipeableRef.current?.close();
-    }
-
-    openSwipeableIdRef.current = id;
-    openSwipeableRef.current = swipeable;
-  }, []);
-
-  const handleSwipeableClose = useCallback((id: string) => {
-    if (openSwipeableIdRef.current === id) {
-      openSwipeableIdRef.current = null;
-      openSwipeableRef.current = null;
-    }
-  }, []);
-
-  const handleDelete = useCallback((id: string) => {
-    if (openSwipeableIdRef.current === id) {
-      openSwipeableRef.current?.close();
-      openSwipeableIdRef.current = null;
-      openSwipeableRef.current = null;
-    }
-
-    removeHistory(id).catch(() => undefined);
-  }, [removeHistory]);
-
   const renderItem = useCallback<ListRenderItem<ServiceLog>>(
     ({ item }) => (
-      <HistoryCard
-        item={item}
-        onDelete={handleDelete}
-        onSwipeableOpen={handleSwipeableOpen}
-        onSwipeableClose={handleSwipeableClose}
-      />
+      <HistoryCard item={item} />
     ),
-    [handleDelete, handleSwipeableClose, handleSwipeableOpen],
+    [],
   );
 
   return (
@@ -202,9 +167,6 @@ export function HistoryScreen() {
             tintColor={Colors.primary}
           />
         }
-        onScrollBeginDrag={() => {
-          openSwipeableRef.current?.close();
-        }}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews
       />

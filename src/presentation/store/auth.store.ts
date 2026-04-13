@@ -69,15 +69,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
   initialize: async () => {
     set({ isLoading: true });
     try {
-      const session = await AuthService.getSession();
-      if (session?.user) {
-        const profile = await AuthService.getUserProfile(session.user.id);
-        set({ user: profile, isAuthenticated: true, isLoading: false });
-        await useSettingsStore.getState().loadProfileImage(profile.id);
-      } else {
-        useSettingsStore.getState().clearProfileImageState();
-        set({ user: null, isAuthenticated: false, isLoading: false });
-      }
+      // Bersihkan session tersimpan agar aplikasi selalu meminta login
+      // sebelum pengguna masuk ke dashboard.
+      await AuthService.logout().catch(() => undefined);
+      useSettingsStore.getState().clearProfileImageState();
+      set({ user: null, isAuthenticated: false, isLoading: false, error: null });
     } catch {
       useSettingsStore.getState().clearProfileImageState();
       set({ user: null, isAuthenticated: false, isLoading: false });

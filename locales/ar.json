@@ -45,6 +45,12 @@
       "overdue": "متأخر"
     }
   },
+  "vehicles": {
+    "empty": {
+      "title": "لا توجد مركبات بعد",
+      "description": "أضف مركبتك الأولى لبدء تتبع جداول الصيانة."
+    }
+  },
   "messages": {
     "loginFailed": "فشل تسجيل الدخول",
     "unexpectedError": "حدث خطأ ما",

@@ -15,9 +15,9 @@ export type AuthStackParamList = {
 };
 
 export type MainTabParamList = {
-  Home: undefined;
+  Home: { reminderMessage?: string } | undefined;
   History: undefined;
-  Articles: undefined;
+  Analytics: undefined;
   Settings: undefined;
 };
 
@@ -25,15 +25,24 @@ export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList> | undefined;
   Main: NavigatorScreenParams<MainTabParamList> | undefined;
   AddVehicle: undefined;
+  AddReminder: undefined;
+  AddService: undefined;
+  UpdateOdometer: { vehicleId?: string };
   ArticleDetail: { article: Article };
+  VehicleDetail: { vehicleId: string };
+  VehiclesList: undefined;
 };
 
 export type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 export type RegisterScreenProps = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 export type HomeScreenProps = BottomTabScreenProps<MainTabParamList, 'Home'>;
 export type AddVehicleScreenProps = NativeStackScreenProps<RootStackParamList, 'AddVehicle'>;
+export type AddReminderScreenProps = NativeStackScreenProps<RootStackParamList, 'AddReminder'>;
+export type AddServiceScreenProps = NativeStackScreenProps<RootStackParamList, 'AddService'>;
+export type UpdateOdometerScreenProps = NativeStackScreenProps<RootStackParamList, 'UpdateOdometer'>;
 export type ArticleDetailScreenProps = NativeStackScreenProps<
   RootStackParamList,
   'ArticleDetail'
 >;
 export type HistoryTabProps = BottomTabScreenProps<MainTabParamList, 'History'>;
+export type VehiclesListScreenProps = NativeStackScreenProps<RootStackParamList, 'VehiclesList'>;

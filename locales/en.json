@@ -45,6 +45,12 @@
       "overdue": "Overdue"
     }
   },
+  "vehicles": {
+    "empty": {
+      "title": "No Vehicles Yet",
+      "description": "Add your first vehicle to start tracking service schedules."
+    }
+  },
   "messages": {
     "loginFailed": "Login failed",
     "unexpectedError": "Something went wrong",

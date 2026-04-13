@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { HomeScreen } from '@presentation/screens/home/HomeScreen';
 import { HistoryScreen } from '@presentation/screens/history/HistoryScreen';
-import { ArticleListScreen } from '@presentation/screens/article/ArticleListScreen';
+import { AnalyticsScreen } from '@presentation/screens/analytics/AnalyticsScreen';
 import { SettingsScreen } from '@presentation/screens/settings/SettingsScreen';
 import { Colors } from '@core/theme/colors';
 import { BorderRadius } from '@core/theme/typography';
@@ -55,7 +55,7 @@ export function MainTabNavigator() {
           > = {
             Home: 'garage',
             History: 'history',
-            Articles: 'newspaper-variant',
+            Analytics: 'chart-line',
             Settings: 'cog',
           };
           return (
@@ -83,7 +83,7 @@ export function MainTabNavigator() {
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('navigation.home') }} />
       <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarLabel: t('navigation.history') }} />
-      <Tab.Screen name="Articles" component={ArticleListScreen} options={{ tabBarLabel: t('navigation.articles') }} />
+      <Tab.Screen name="Analytics" component={AnalyticsScreen} options={{ tabBarLabel: 'Grafik' }} />
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: t('navigation.settings') }} />
     </Tab.Navigator>
   );

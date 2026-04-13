@@ -3,12 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { I18nManager, Platform } from 'react-native';
 
 import i18n from '../../../i18n';
-import {
-  AppLanguage,
-  getPreferredLanguage,
-  isRtlLanguage,
-  isSupportedLanguage,
-} from '@core/utils/i18n.utils';
+import { AppLanguage, isRtlLanguage } from '@core/utils/i18n.utils';
 
 export type Language = AppLanguage;
 export type ThemeMode = 'light' | 'dark' | 'system';
@@ -119,10 +114,7 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
 
   loadLanguage: async () => {
     try {
-      const savedLanguage = await AsyncStorage.getItem(STORAGE_KEYS.LANGUAGE);
-      const nextLanguage = isSupportedLanguage(savedLanguage)
-        ? savedLanguage
-        : getPreferredLanguage();
+      const nextLanguage: Language = 'id';
 
       const shouldUseRTL = isRtlLanguage(nextLanguage);
 
@@ -138,6 +130,7 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
       }
 
       set({ language: nextLanguage });
+      await AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, nextLanguage);
     } catch {
       set({ language: 'id' });
     }

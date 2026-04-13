@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Chip, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,7 @@ interface VehicleCardProps {
   vehicle: Vehicle;
   onPress?: () => void;
   onMarkAsServiced?: () => void;
+  onUpdateOdometer?: () => void;
   isMarkingServiced?: boolean;
 }
 
@@ -43,6 +44,7 @@ export const VehicleCard = memo<VehicleCardProps>(({
   vehicle,
   onPress,
   onMarkAsServiced,
+  onUpdateOdometer,
   isMarkingServiced = false,
 }) => {
   const { colors, isDark } = useTheme();
@@ -66,14 +68,27 @@ export const VehicleCard = memo<VehicleCardProps>(({
   return (
     <AppCard onPress={onPress}>
       <View style={styles.header}>
-        <View
-          style={[
-            styles.iconContainer,
-            { backgroundColor: isDark ? Colors.dark.hero : Colors.primaryLight },
-          ]}
-        >
-          <MaterialCommunityIcons name={typeIcon} size={28} color={Colors.primary} />
-        </View>
+        {onUpdateOdometer ? (
+          <Pressable
+            style={[
+              styles.iconContainer,
+              { backgroundColor: isDark ? Colors.dark.hero : Colors.primaryLight },
+            ]}
+            onPress={onUpdateOdometer}
+            android_ripple={{ color: 'rgba(36, 107, 253, 0.12)', borderless: true }}
+          >
+            <MaterialCommunityIcons name={typeIcon} size={24} color={Colors.primary} />
+          </Pressable>
+        ) : (
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: isDark ? Colors.dark.hero : Colors.primaryLight },
+            ]}
+          >
+            <MaterialCommunityIcons name={typeIcon} size={24} color={Colors.primary} />
+          </View>
+        )}
 
         <View style={styles.headerInfo}>
           <Text variant="titleMedium" style={styles.vehicleName} numberOfLines={1}>
@@ -124,7 +139,7 @@ export const VehicleCard = memo<VehicleCardProps>(({
         </View>
 
         <View style={[styles.heroBadge, { backgroundColor: `${statusColor}16` }]}>
-          <MaterialCommunityIcons name={serviceIcon} size={22} color={statusColor} />
+          <MaterialCommunityIcons name={serviceIcon} size={20} color={statusColor} />
         </View>
       </View>
 
@@ -225,11 +240,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   iconContainer: {
-    width: 54,
-    height: 54,
+    width: 44,
+    height: 44,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
@@ -253,10 +268,11 @@ const styles = StyleSheet.create({
   },
   heroPanel: {
     borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
+    paddingVertical: 6,
+    paddingHorizontal: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   heroCopy: {
     flex: 1,
@@ -272,17 +288,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
   },
   heroBadge: {
-    width: 42,
-    height: 42,
+    width: 36,
+    height: 36,
     borderRadius: BorderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: Spacing.md,
+    marginLeft: Spacing.sm,
   },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   stat: {
     flex: 1,
@@ -297,10 +313,10 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     alignSelf: 'stretch',
-    marginHorizontal: Spacing.md,
+    marginHorizontal: Spacing.sm,
   },
   progressContainer: {
-    gap: Spacing.xs,
+    gap: 2,
   },
   progressLabel: {
     fontFamily: 'Poppins_500Medium',
@@ -322,9 +338,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
   },
   actions: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   actionButton: {
     borderRadius: BorderRadius.full,
+    minWidth: 140,
   },
 });
