@@ -1,151 +1,192 @@
-import React, { memo, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { memo, useCallback, useMemo, useRef } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Reanimated, {
-  FadeIn,
-  FadeOutLeft,
-  LinearTransition,
-} from 'react-native-reanimated';
-import { Text } from 'react-native-paper';
 import { format } from 'date-fns';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { RectButton, Swipeable } from 'react-native-gesture-handler';
 
 import { Colors } from '@core/theme/colors';
-import { Spacing } from '@core/theme/typography';
-import {
-  getDateFnsLocale,
-  getIntlLocale,
-  translateServiceType,
-} from '@core/utils/i18n.utils';
+import { BorderRadius, Spacing } from '@core/theme/typography';
+import { getDateFnsLocale } from '@core/utils/i18n.utils';
 import type { ServiceLog } from '@domain/types/serviceLog.types';
-import { AppCard } from '@presentation/components/common/AppCard';
 import { useTheme } from '@presentation/hooks/useTheme';
-
-const SERVICE_TYPE_ICONS: Record<string, React.ComponentProps<typeof MaterialCommunityIcons>['name']> = {
-  'ganti oli': 'oil',
-  'servis rutin': 'wrench-check',
-  'ganti ban': 'tire',
-  'tune up': 'engine',
-};
-
-function getServiceIcon(serviceType: string) {
-  return SERVICE_TYPE_ICONS[serviceType.toLowerCase()] ?? 'wrench-cog';
-}
 
 interface HistoryCardProps {
   item: ServiceLog;
+  onDelete: (id: string) => void;
+  onSwipeableOpen: (id: string, ref: Swipeable | null) => void;
+  onSwipeableClose: (id: string) => void;
 }
 
 export const HistoryCard = memo<HistoryCardProps>(({
   item,
+  onDelete,
+  onSwipeableOpen,
+  onSwipeableClose,
 }) => {
+  const swipeableRef = useRef<Swipeable | null>(null);
   const { colors, isDark } = useTheme();
-  const { t, i18n } = useTranslation();
-  const serviceIcon = getServiceIcon(item.serviceType);
+  const { i18n, t } = useTranslation();
+
   const language = (i18n.resolvedLanguage as 'id' | 'en' | 'ja' | 'ar') ?? 'id';
-  const locale = getIntlLocale(language);
 
   const formattedDate = useMemo(
     () =>
-      format(new Date(item.serviceDate), 'dd MMMM yyyy', {
+      format(new Date(item.serviceDate), 'dd MMM yyyy', {
         locale: getDateFnsLocale(language),
       }),
     [item.serviceDate, language],
   );
 
-  return (
-    <Reanimated.View
-      entering={FadeIn.duration(160)}
-      exiting={FadeOutLeft.duration(180)}
-      layout={LinearTransition.duration(180)}
-      style={styles.animatedItem}
-    >
-      <AppCard style={styles.logCard}>
-        <View style={styles.logHeader}>
-          <View
-            style={[
-              styles.logIcon,
-              { backgroundColor: isDark ? Colors.dark.hero : Colors.successLight },
-            ]}
-          >
-            <MaterialCommunityIcons name={serviceIcon} size={20} color={Colors.success} />
-          </View>
+  const handleDelete = useCallback(() => {
+    onDelete(item.id);
+  }, [item.id, onDelete]);
 
-          <View style={styles.logInfo}>
-            <Text variant="titleSmall" style={styles.logVehicle}>
+  const handleSwipeableOpen = useCallback(() => {
+    onSwipeableOpen(item.id, swipeableRef.current);
+  }, [item.id, onSwipeableOpen]);
+
+  const handleSwipeableClose = useCallback(() => {
+    onSwipeableClose(item.id);
+  }, [item.id, onSwipeableClose]);
+
+  const renderRightActions = useCallback(
+    (
+      progress: Animated.AnimatedInterpolation<number>,
+      dragX: Animated.AnimatedInterpolation<number>,
+    ) => {
+      const translateX = dragX.interpolate({
+        inputRange: [-120, -40, 0],
+        outputRange: [0, 12, 24],
+        extrapolate: 'clamp',
+      });
+
+      const scale = progress.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: [0.92, 0.97, 1],
+        extrapolate: 'clamp',
+      });
+
+      const opacity = progress.interpolate({
+        inputRange: [0, 0.25, 1],
+        outputRange: [0.55, 0.8, 1],
+        extrapolate: 'clamp',
+      });
+
+      return (
+        <Animated.View
+          style={[
+            styles.rightActionWrapper,
+            {
+              opacity,
+              transform: [{ translateX }, { scale }],
+            },
+          ]}
+        >
+          <RectButton style={styles.deleteButton} onPress={handleDelete}>
+            <MaterialCommunityIcons name="delete" size={24} color={Colors.white} />
+            <Text variant="labelLarge" style={styles.deleteText}>
+              {t('common.delete', 'Delete')}
+            </Text>
+          </RectButton>
+        </Animated.View>
+      );
+    },
+    [handleDelete, t],
+  );
+
+  return (
+    <View style={styles.container}>
+      <Swipeable
+        ref={swipeableRef}
+        friction={2}
+        overshootRight={false}
+        rightThreshold={32}
+        containerStyle={styles.swipeableContainer}
+        renderRightActions={renderRightActions}
+        onSwipeableOpen={handleSwipeableOpen}
+        onSwipeableClose={handleSwipeableClose}
+      >
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: isDark ? colors.surfaceElevated : colors.surface,
+              borderColor: isDark ? Colors.dark.outline : Colors.light.outline,
+              shadowOpacity: isDark ? 0.26 : 0.08,
+            },
+          ]}
+        >
+          <View style={styles.content}>
+            <Text variant="titleSmall" style={[styles.vehicleName, { color: colors.onSurface }]}>
               {item.vehicleName}
             </Text>
-            <Text
-              variant="bodySmall"
-              style={[styles.logServiceType, { color: colors.onSurfaceVariant }]}
-            >
-              {translateServiceType(t, item.serviceType)}
-            </Text>
-            <Text variant="bodySmall" style={[styles.logDate, { color: colors.onSurfaceVariant }]}>
-              {formattedDate}
-            </Text>
+
+            <View style={styles.dateRow}>
+              <MaterialCommunityIcons
+                name="calendar-month-outline"
+                size={16}
+                color={colors.onSurfaceVariant}
+              />
+              <Text variant="bodyMedium" style={[styles.serviceDate, { color: colors.onSurfaceVariant }]}>
+                {formattedDate}
+              </Text>
+            </View>
           </View>
-
-          <Text variant="labelLarge" style={styles.logKm}>
-            {item.serviceKm.toLocaleString(locale)} km
-          </Text>
         </View>
-
-        {item.notes ? (
-          <Text
-            variant="bodySmall"
-            style={[styles.logNotes, { color: colors.onSurfaceVariant }]}
-            numberOfLines={2}
-          >
-            {t('historyScreen.notesPrefix')}: {item.notes}
-          </Text>
-        ) : null}
-      </AppCard>
-    </Reanimated.View>
+      </Swipeable>
+    </View>
   );
 });
 
 HistoryCard.displayName = 'HistoryCard';
 
 const styles = StyleSheet.create({
-  animatedItem: {
+  container: {
     marginBottom: Spacing.sm,
   },
-  logCard: {
-    marginBottom: 0,
+  swipeableContainer: {
+    borderRadius: BorderRadius.lg,
   },
-  logHeader: {
+  card: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 10 },
+    shadowRadius: 20,
+    elevation: 3,
+  },
+  content: {
+    gap: Spacing.xs,
+  },
+  vehicleName: {
+    fontFamily: 'Poppins_700Bold',
+  },
+  dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Spacing.xs,
   },
-  logIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+  serviceDate: {
+    fontFamily: 'Poppins_500Medium',
+  },
+  rightActionWrapper: {
+    width: 96,
+    marginBottom: Spacing.sm,
+  },
+  deleteButton: {
+    flex: 1,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.error,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: Spacing.md,
+    gap: Spacing.xs,
   },
-  logInfo: {
-    flex: 1,
-  },
-  logVehicle: {
+  deleteText: {
+    color: Colors.white,
     fontFamily: 'Poppins_600SemiBold',
-  },
-  logServiceType: {
-    fontFamily: 'Poppins_500Medium',
-    marginBottom: 2,
-  },
-  logDate: {
-    fontFamily: 'Poppins_400Regular',
-  },
-  logKm: {
-    fontFamily: 'Poppins_700Bold',
-    color: Colors.primary,
-  },
-  logNotes: {
-    marginTop: Spacing.sm,
-    fontFamily: 'Poppins_400Regular',
-    fontStyle: 'italic',
   },
 });

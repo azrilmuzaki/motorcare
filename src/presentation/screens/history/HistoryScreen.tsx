@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   FlatList,
   ListRenderItem,
@@ -12,6 +12,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { format } from 'date-fns';
 import { Snackbar, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import type { Swipeable } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '@core/theme/colors';
@@ -40,7 +41,10 @@ export function HistoryScreen() {
     error,
     clearError,
     fetchServiceHistory,
+    removeHistory,
   } = useVehicleStore();
+  const openSwipeableRef = useRef<Swipeable | null>(null);
+  const openSwipeableIdRef = useRef<string | null>(null);
 
   const refreshHistory = useCallback(() => {
     if (!user?.id) {
@@ -59,11 +63,46 @@ export function HistoryScreen() {
 
   const latestLog = useMemo(() => serviceHistory[0] ?? null, [serviceHistory]);
 
+  const handleDelete = useCallback(async (id: string) => {
+    if (openSwipeableIdRef.current === id) {
+      openSwipeableRef.current?.close();
+      openSwipeableRef.current = null;
+      openSwipeableIdRef.current = null;
+    }
+
+    try {
+      await removeHistory(id);
+    } catch {
+      // Store rollback and error handling are managed in the zustand store.
+    }
+  }, [removeHistory]);
+
+  const handleSwipeableOpen = useCallback((id: string, ref: Swipeable | null) => {
+    if (openSwipeableIdRef.current && openSwipeableIdRef.current !== id) {
+      openSwipeableRef.current?.close();
+    }
+
+    openSwipeableRef.current = ref;
+    openSwipeableIdRef.current = id;
+  }, []);
+
+  const handleSwipeableClose = useCallback((id: string) => {
+    if (openSwipeableIdRef.current === id) {
+      openSwipeableRef.current = null;
+      openSwipeableIdRef.current = null;
+    }
+  }, []);
+
   const renderItem = useCallback<ListRenderItem<ServiceLog>>(
     ({ item }) => (
-      <HistoryCard item={item} />
+      <HistoryCard
+        item={item}
+        onDelete={handleDelete}
+        onSwipeableOpen={handleSwipeableOpen}
+        onSwipeableClose={handleSwipeableClose}
+      />
     ),
-    [],
+    [handleDelete, handleSwipeableClose, handleSwipeableOpen],
   );
 
   return (
