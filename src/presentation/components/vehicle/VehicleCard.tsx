@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   heroPanel: {
     borderRadius: BorderRadius.lg,
     paddingVertical: 6,
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: Spacing.sm,
