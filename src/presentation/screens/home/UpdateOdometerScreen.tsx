@@ -8,8 +8,8 @@ import { AppButton } from '@presentation/components/common/AppButton';
 import { AppInput } from '@presentation/components/common/AppInput';
 import { EmptyState } from '@presentation/components/common/EmptyState';
 import { useTheme } from '@presentation/hooks/useTheme';
-import { useVehicleStore } from '@presentation/store/vehicle.store';
 import { useNotification } from '@presentation/hooks/useNotification';
+import { useVehicles } from '@presentation/hooks/useVehicles';
 import type { UpdateOdometerScreenProps } from '@presentation/navigation/types';
 
 interface FormData {
@@ -19,7 +19,7 @@ interface FormData {
 
 export function UpdateOdometerScreen({ navigation, route }: UpdateOdometerScreenProps) {
   const { colors } = useTheme();
-  const { vehicles, updateVehicle } = useVehicleStore();
+  const { vehicles, updateVehicle } = useVehicles();
   const { requestPermission, scheduleServiceReminder } = useNotification();
   const [menuVisible, setMenuVisible] = useState(false);
   const [snackbar, setSnackbar] = useState('');
@@ -37,7 +37,7 @@ export function UpdateOdometerScreen({ navigation, route }: UpdateOdometerScreen
       const vehicle = vehicles.find((item) => item.id === route.params.vehicleId);
       if (vehicle) {
         setValue('vehicleId', vehicle.id);
-        setValue('currentKm', vehicle.currentKm);
+        setValue('currentKm', vehicle.projectedCurrentKm ?? vehicle.currentKm);
       }
     }
   }, [route.params?.vehicleId, vehicles, setValue]);
@@ -47,7 +47,7 @@ export function UpdateOdometerScreen({ navigation, route }: UpdateOdometerScreen
       const vehicle = vehicles.find((item) => item.id === vehicleId);
       if (vehicle) {
         setValue('vehicleId', vehicleId);
-        setValue('currentKm', vehicle.currentKm);
+        setValue('currentKm', vehicle.projectedCurrentKm ?? vehicle.currentKm);
       }
       setMenuVisible(false);
     },
@@ -61,12 +61,9 @@ export function UpdateOdometerScreen({ navigation, route }: UpdateOdometerScreen
       }
 
       try {
-        await updateVehicle(data.vehicleId, { currentKm: data.currentKm });
+        const updatedVehicle = await updateVehicle(data.vehicleId, { currentKm: data.currentKm });
         await requestPermission();
-        const selected = vehicles.find((vehicle) => vehicle.id === data.vehicleId);
-        if (selected) {
-          await scheduleServiceReminder(selected);
-        }
+        await scheduleServiceReminder(updatedVehicle);
         setSnackbar('Odometer berhasil diperbarui.');
         navigation.goBack();
       } catch {

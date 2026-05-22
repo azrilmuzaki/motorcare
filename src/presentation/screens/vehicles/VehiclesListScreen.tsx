@@ -57,7 +57,7 @@ export function VehiclesListScreen() {
             {item.name}
           </Text>
           <Text variant="bodySmall" style={[styles.vehicleKm, { color: colors.onSurfaceVariant }]}>
-            {item.currentKm?.toLocaleString('id-ID') ?? '0'} km
+            {(item.projectedCurrentKm ?? item.currentKm ?? 0).toLocaleString('id-ID')} km
           </Text>
         </View>
         <MaterialCommunityIcons

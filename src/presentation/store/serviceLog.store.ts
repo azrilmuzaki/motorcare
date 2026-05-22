@@ -10,6 +10,8 @@ interface ServiceLogStore {
 
   fetchLogs: (userId: string) => Promise<void>;
   addLog: (input: CreateServiceLogInput) => Promise<void>;
+  prependLog: (log: ServiceLog) => void;
+  setLogs: (logs: ServiceLog[]) => void;
   deleteLog: (id: string) => Promise<void>;
   clearError: () => void;
 }
@@ -45,13 +47,28 @@ export const useServiceLogStore = create<ServiceLogStore>((set) => ({
     }
   },
 
+  prependLog: (log) => {
+    set((state) => ({
+      logs: [log, ...state.logs.filter((item) => item.id !== log.id)],
+    }));
+  },
+
+  setLogs: (logs) => {
+    set({ logs });
+  },
+
   deleteLog: async (id) => {
     const prev = useServiceLogStore.getState().logs;
-    set((state) => ({ logs: state.logs.filter((l) => l.id !== id) }));
+    set((state) => ({
+      logs: state.logs.filter((log) => log.id !== id),
+      error: null,
+    }));
     try {
       await ServiceLogService.deleteServiceLog(id);
-    } catch {
-      set({ logs: prev });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : i18n.t('messages.historyDeleteFailed');
+      set({ logs: prev, error: message });
+      throw err;
     }
   },
 

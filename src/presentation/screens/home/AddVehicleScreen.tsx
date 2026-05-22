@@ -355,7 +355,7 @@ export function AddVehicleScreen({ navigation }: AddVehicleScreenProps) {
                 { color: isDark ? colors.onSurfaceVariant : Colors.primaryDark },
               ]}
             >
-              {t('addVehicle.preview', { count: Math.floor(targetInterval / dailyEst) })}
+              {t('addVehicle.preview', { count: Math.ceil(targetInterval / dailyEst) })}
             </Text>
           </View>
         ) : null}

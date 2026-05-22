@@ -8,7 +8,7 @@ import { VEHICLE_TYPE_ICONS } from '@core/constants/app.constants';
 import { Colors } from '@core/theme/colors';
 import { BorderRadius, FontSizes, Spacing } from '@core/theme/typography';
 import { getIntlLocale, translateServiceType, translateVehicleType } from '@core/utils/i18n.utils';
-import { getServiceStatus } from '@domain/logic/vehicle.logic';
+import { calculateServiceProgressPercent, getServiceStatus } from '@domain/logic/vehicle.logic';
 import { ServiceStatus, Vehicle } from '@domain/types/vehicle.types';
 import { AppButton } from '@presentation/components/common/AppButton';
 import { AppCard } from '@presentation/components/common/AppCard';
@@ -51,19 +51,14 @@ export const VehicleCard = memo<VehicleCardProps>(({
   const { t, i18n } = useTranslation();
   const remainingKm = vehicle.remainingKm ?? 0;
   const estimatedDays = vehicle.estimatedDays ?? 0;
+  const projectedCurrentKm = vehicle.projectedCurrentKm ?? vehicle.currentKm;
   const status = getServiceStatus(remainingKm);
   const statusColor = STATUS_COLORS[status];
   const typeIcon = VEHICLE_TYPE_ICONS[vehicle.type];
   const serviceIcon = getServiceTypeIcon(vehicle.serviceType);
   const locale = getIntlLocale((i18n.resolvedLanguage as 'id' | 'en' | 'ja' | 'ar') ?? 'id');
   const serviceTypeLabel = translateServiceType(t, vehicle.serviceType);
-  const progress = Math.max(
-    0,
-    Math.min(
-      100,
-      ((vehicle.targetInterval - remainingKm) / Math.max(vehicle.targetInterval, 1)) * 100,
-    ),
-  );
+  const progress = calculateServiceProgressPercent(remainingKm, vehicle.targetInterval);
 
   return (
     <AppCard onPress={onPress}>
@@ -152,7 +147,7 @@ export const VehicleCard = memo<VehicleCardProps>(({
             {t('vehicleCard.currentKm')}
           </Text>
           <Text variant="titleMedium" style={styles.statValue}>
-            {vehicle.currentKm.toLocaleString(locale)} km
+            {projectedCurrentKm.toLocaleString(locale)} km
           </Text>
         </View>
 
@@ -206,13 +201,13 @@ export const VehicleCard = memo<VehicleCardProps>(({
             variant="labelSmall"
             style={[styles.progressText, { color: colors.onSurfaceVariant }]}
           >
-            0 km
+            {vehicle.targetInterval.toLocaleString(locale)} km
           </Text>
           <Text
             variant="labelSmall"
             style={[styles.progressText, { color: colors.onSurfaceVariant }]}
           >
-            {vehicle.targetInterval.toLocaleString(locale)} km
+            0 km
           </Text>
         </View>
       </View>

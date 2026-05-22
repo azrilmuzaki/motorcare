@@ -9,6 +9,7 @@ import {
 import { enrichVehicle } from '@domain/logic/vehicle.logic';
 import { ServiceLog } from '@domain/types/serviceLog.types';
 import i18n from '../../../i18n';
+import { useServiceLogStore } from './serviceLog.store';
 
 interface VehicleStore {
   vehicles: Vehicle[];
@@ -24,7 +25,7 @@ interface VehicleStore {
   addVehicle: (userId: string, input: CreateVehicleInput) => Promise<void>;
   markAsServiced: (vehicleId: string) => Promise<void>;
   removeHistory: (id: string) => Promise<void>;
-  updateVehicle: (id: string, input: UpdateVehicleInput) => Promise<void>;
+  updateVehicle: (id: string, input: UpdateVehicleInput) => Promise<Vehicle>;
   deleteVehicle: (id: string) => Promise<void>;
   selectVehicle: (vehicle: Vehicle | null) => void;
   clearError: () => void;
@@ -45,7 +46,7 @@ export const useVehicleStore = create<VehicleStore>((set, get) => ({
     try {
       const raw = await VehicleService.getVehicles(userId);
       // Enrich setiap kendaraan dengan computed fields
-      const vehicles = raw.map(enrichVehicle);
+      const vehicles = raw.map(vehicle => enrichVehicle(vehicle));
       set({ vehicles, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : i18n.t('messages.vehiclesLoadFailed');
@@ -57,6 +58,7 @@ export const useVehicleStore = create<VehicleStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const history = await ServiceLogService.getServiceLogs(userId);
+      useServiceLogStore.getState().setLogs(history);
       set({ serviceHistory: history, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : i18n.t('messages.serviceHistoryLoadFailed');
@@ -85,8 +87,9 @@ export const useVehicleStore = create<VehicleStore>((set, get) => ({
 
   markAsServiced: async (vehicleId) => {
     const vehicle = get().vehicles.find(item => item.id === vehicleId);
+    const projectedVehicle = vehicle ? enrichVehicle(vehicle) : null;
 
-    if (!vehicle) {
+    if (!projectedVehicle) {
       const message = i18n.t('messages.vehicleNotFound');
       set({ error: message });
       throw new Error(message);
@@ -103,27 +106,31 @@ export const useVehicleStore = create<VehicleStore>((set, get) => ({
 
     try {
       const createdLog = await ServiceLogService.createServiceLog({
-        vehicleId: vehicle.id,
+        vehicleId: projectedVehicle.id,
         serviceDate,
-        serviceKm: vehicle.currentKm,
-        notes: `Servis diselesaikan: ${vehicle.serviceType}`,
+        serviceKm: projectedVehicle.projectedCurrentKm ?? projectedVehicle.currentKm,
+        notes: `Servis diselesaikan: ${projectedVehicle.serviceType}`,
       });
 
       try {
-        await VehicleService.updateVehicle(vehicle.id, { isActive: false });
+        await VehicleService.updateVehicle(projectedVehicle.id, { isActive: false });
       } catch (archiveError) {
         await ServiceLogService.deleteServiceLog(createdLog.id).catch(() => undefined);
         throw archiveError;
       }
 
+      const syncedLog = {
+        ...createdLog,
+        vehicleName: createdLog.vehicleName || projectedVehicle.name,
+        serviceType: createdLog.serviceType || projectedVehicle.serviceType,
+      };
+
+      useServiceLogStore.getState().prependLog(syncedLog);
+
       set((state) => ({
         vehicles: state.vehicles.filter(item => item.id !== vehicleId),
         serviceHistory: [
-          {
-            ...createdLog,
-            vehicleName: createdLog.vehicleName || vehicle.name,
-            serviceType: createdLog.serviceType || vehicle.serviceType,
-          },
+          syncedLog,
           ...state.serviceHistory,
         ],
         isLoading: false,
@@ -143,16 +150,16 @@ export const useVehicleStore = create<VehicleStore>((set, get) => ({
 
   removeHistory: async (id) => {
     const previousHistory = get().serviceHistory;
+    const nextHistory = previousHistory.filter(log => log.id !== id);
 
-    set((state) => ({
-      serviceHistory: state.serviceHistory.filter(log => log.id !== id),
-      error: null,
-    }));
+    useServiceLogStore.getState().setLogs(nextHistory);
+    set({ serviceHistory: nextHistory, error: null });
 
     try {
       await ServiceLogService.deleteServiceLog(id);
     } catch (err) {
       const message = err instanceof Error ? err.message : i18n.t('messages.historyDeleteFailed');
+      useServiceLogStore.getState().setLogs(previousHistory);
       set({
         serviceHistory: previousHistory,
         error: message,
@@ -173,6 +180,7 @@ export const useVehicleStore = create<VehicleStore>((set, get) => ({
         vehicles: state.vehicles.map((v) => (v.id === id ? enriched : v)),
         isLoading: false,
       }));
+      return enriched;
     } catch (err) {
       const message = err instanceof Error ? err.message : i18n.t('messages.vehicleUpdateFailed');
       set({ error: message, isLoading: false });

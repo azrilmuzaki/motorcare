@@ -12,7 +12,7 @@ import { useTheme } from '@presentation/hooks/useTheme';
 import { useVehicles } from '@presentation/hooks/useVehicles';
 import type { RootStackParamList } from '@presentation/navigation/types';
 import { VEHICLE_TYPE_ICONS } from '@core/constants/app.constants';
-import { getServiceStatus } from '@domain/logic/vehicle.logic';
+import { calculateServiceProgressPercent, getServiceStatus } from '@domain/logic/vehicle.logic';
 import { translateServiceType } from '@core/utils/i18n.utils';
 
 type VehicleDetailScreenProps = NativeStackScreenProps<RootStackParamList, 'VehicleDetail'>;
@@ -55,8 +55,9 @@ export function VehicleDetailScreen({ route }: VehicleDetailScreenProps) {
   );
 
   const locale = (i18n.resolvedLanguage as 'id' | 'en' | 'ja' | 'ar') ?? 'id';
+  const projectedCurrentKm = vehicle?.projectedCurrentKm ?? vehicle?.currentKm ?? 0;
   const progress = useMemo(
-    () => (vehicle ? Math.max(0, Math.min(100, (vehicle.currentKm / Math.max(vehicle.targetInterval, 1)) * 100)) : 0),
+    () => (vehicle ? calculateServiceProgressPercent(vehicle.remainingKm ?? 0, vehicle.targetInterval) : 0),
     [vehicle],
   );
   const isMarkingServiced = vehicle ? markingVehicleId === vehicle.id : false;
@@ -124,16 +125,16 @@ if (isLoading) {
               </Text>
             ) : null}
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: `${Colors.success}16` }]}> 
-            <MaterialCommunityIcons name="check-circle" size={18} color={Colors.success} />
-            <Text style={[styles.statusText, { color: Colors.success }]}>{t(`vehicle.status.${status}`)}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: `${statusColor}16` }]}> 
+            <MaterialCommunityIcons name="check-circle" size={18} color={statusColor} />
+            <Text style={[styles.statusText, { color: statusColor }]}>{t(`vehicle.status.${status}`)}</Text>
           </View>
         </View>
 
         <View style={styles.detailRow}>
           <MaterialCommunityIcons name="speedometer" size={18} color={Colors.primary} />
           <Text style={[styles.detailLabel, { color: colors.onSurfaceVariant }]}>KM Sekarang</Text>
-          <Text style={[styles.detailValue, { color: colors.onBackground }]}>{vehicle.currentKm.toLocaleString(locale)} km</Text>
+          <Text style={[styles.detailValue, { color: colors.onBackground }]}>{projectedCurrentKm.toLocaleString(locale)} km</Text>
         </View>
 
         <View style={styles.detailRow}>
@@ -150,8 +151,8 @@ if (isLoading) {
             <View style={[styles.progressBar, { width: `${progress}%`, backgroundColor: statusColor }]} />
           </View>
           <View style={styles.progressMeta}>
-            <Text style={[styles.progressText, { color: colors.onSurfaceVariant }]}>0 km</Text>
             <Text style={[styles.progressText, { color: colors.onSurfaceVariant }]}>{vehicle.targetInterval.toLocaleString(locale)} km</Text>
+            <Text style={[styles.progressText, { color: colors.onSurfaceVariant }]}>0 km</Text>
           </View>
         </View>
 

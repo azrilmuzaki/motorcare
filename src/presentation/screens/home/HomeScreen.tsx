@@ -290,7 +290,7 @@ export function HomeScreen() {
                   {featuredVehicle.name}
                 </Text>
                 <Text variant="bodySmall" style={[styles.vehicleKmSimple, { color: colors.onSurfaceVariant }]}> 
-                  {featuredVehicle.currentKm.toLocaleString(locale)} km
+                  {(featuredVehicle.projectedCurrentKm ?? featuredVehicle.currentKm).toLocaleString(locale)} km
                 </Text>
               </View>
             </Pressable>

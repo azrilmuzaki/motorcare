@@ -7,6 +7,20 @@ import {
 
 function getVehicleErrorMessage(message: string): string {
   if (
+    message.includes("Could not find the 'service_start_km' column of 'vehicles'") ||
+    message.includes('service_start_km')
+  ) {
+    return 'Kolom acuan KM servis belum ada. Jalankan SQL di database/add_vehicle_service_cycle_columns.sql pada Supabase, lalu coba lagi.';
+  }
+
+  if (
+    message.includes("Could not find the 'last_odometer_update_at' column of 'vehicles'") ||
+    message.includes('last_odometer_update_at')
+  ) {
+    return 'Kolom waktu update odometer belum ada. Jalankan SQL di database/add_vehicle_service_cycle_columns.sql pada Supabase, lalu coba lagi.';
+  }
+
+  if (
     message.includes("Could not find the 'service_type' column of 'vehicles'") ||
     message.includes('service_type')
   ) {
@@ -28,6 +42,11 @@ function getVehicleErrorMessage(message: string): string {
  */
 function mapRowToVehicle(row: Record<string, unknown>): Vehicle {
   const rawServiceType = row.service_type;
+  const rawCurrentKm = row.current_km as number;
+  const referenceDate =
+    typeof row.last_odometer_update_at === 'string'
+      ? row.last_odometer_update_at
+      : (row.updated_at as string | undefined) ?? (row.created_at as string);
 
   return {
     id: row.id as string,
@@ -39,11 +58,14 @@ function mapRowToVehicle(row: Record<string, unknown>): Vehicle {
         ? rawServiceType
         : 'Servis Rutin',
     isActive: typeof row.is_active === 'boolean' ? (row.is_active as boolean) : true,
-    currentKm: row.current_km as number,
+    currentKm: rawCurrentKm,
+    serviceStartKm:
+      typeof row.service_start_km === 'number' ? (row.service_start_km as number) : rawCurrentKm,
     targetInterval: row.target_interval as number,
     dailyEst: row.daily_est as number,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
+    lastOdometerUpdateAt: referenceDate,
   };
 }
 
@@ -84,6 +106,8 @@ export const VehicleService = {
     userId: string,
     input: CreateVehicleInput
   ): Promise<Vehicle> {
+    const now = new Date().toISOString();
+
     const { data, error } = await supabase
       .from('vehicles')
       .insert({
@@ -93,8 +117,10 @@ export const VehicleService = {
         service_type: input.serviceType.trim(),
         is_active: true,
         current_km: input.currentKm,
+        service_start_km: input.currentKm,
         target_interval: input.targetInterval,
         daily_est: input.dailyEst,
+        last_odometer_update_at: now,
       })
       .select()
       .single();
@@ -112,7 +138,12 @@ export const VehicleService = {
     if (input.type !== undefined) updateData.type = input.type;
     if (input.serviceType !== undefined) updateData.service_type = input.serviceType.trim();
     if (input.isActive !== undefined) updateData.is_active = input.isActive;
-    if (input.currentKm !== undefined) updateData.current_km = input.currentKm;
+    if (input.currentKm !== undefined) {
+      updateData.current_km = input.currentKm;
+      updateData.last_odometer_update_at =
+        input.lastOdometerUpdateAt ?? new Date().toISOString();
+    }
+    if (input.serviceStartKm !== undefined) updateData.service_start_km = input.serviceStartKm;
     if (input.targetInterval !== undefined) updateData.target_interval = input.targetInterval;
     if (input.dailyEst !== undefined) updateData.daily_est = input.dailyEst;
 

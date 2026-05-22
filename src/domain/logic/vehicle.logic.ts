@@ -3,16 +3,68 @@ import {
   SERVICE_THRESHOLD,
 } from '@core/constants/app.constants';
 
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+function parseDate(value: string | Date | undefined): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 /**
- * Hitung sisa KM hingga jadwal servis
- * remainingKm = target_interval - (current_km % target_interval)
+ * Hitung jumlah hari penggunaan sejak update odometer terakhir.
+ */
+export function calculateElapsedUsageDays(
+  referenceDate: string | Date,
+  now: Date = new Date(),
+): number {
+  const parsedReference = parseDate(referenceDate);
+
+  if (!parsedReference) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    Math.floor((now.getTime() - parsedReference.getTime()) / MS_PER_DAY),
+  );
+}
+
+/**
+ * Proyeksikan KM saat ini berdasarkan estimasi pemakaian harian.
+ */
+export function calculateProjectedCurrentKm(
+  currentKm: number,
+  dailyEst: number,
+  referenceDate: string | Date,
+  now: Date = new Date(),
+): number {
+  if (dailyEst <= 0) {
+    return currentKm;
+  }
+
+  const elapsedDays = calculateElapsedUsageDays(referenceDate, now);
+  return currentKm + elapsedDays * dailyEst;
+}
+
+/**
+ * Hitung sisa KM hingga jadwal servis berikutnya.
+ * Siklus servis dimulai dari KM saat kendaraan terakhir dicatat/diservis.
  */
 export function calculateRemainingKm(
-  currentKm: number,
-  targetInterval: number
+  projectedCurrentKm: number,
+  serviceStartKm: number,
+  targetInterval: number,
 ): number {
-  const kmSinceLastService = currentKm % targetInterval;
-  return targetInterval - kmSinceLastService;
+  if (targetInterval <= 0) {
+    return 0;
+  }
+
+  const kmSinceServiceStart = Math.max(0, projectedCurrentKm - serviceStartKm);
+  return targetInterval - kmSinceServiceStart;
 }
 
 /**
@@ -23,8 +75,23 @@ export function calculateEstimatedDays(
   remainingKm: number,
   dailyEst: number
 ): number {
-  if (dailyEst <= 0) return 0;
-  return Math.floor(remainingKm / dailyEst);
+  if (dailyEst <= 0 || remainingKm <= 0) return 0;
+  return Math.ceil(remainingKm / dailyEst);
+}
+
+/**
+ * Persentase sisa progress servis.
+ * Nilai akan mengecil saat kendaraan mendekati jadwal servis.
+ */
+export function calculateServiceProgressPercent(
+  remainingKm: number,
+  targetInterval: number,
+): number {
+  if (targetInterval <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, (Math.max(remainingKm, 0) / targetInterval) * 100));
 }
 
 /**
@@ -40,15 +107,30 @@ export function getServiceStatus(remainingKm: number): ServiceStatus {
 /**
  * Enrich vehicle dengan computed fields
  */
-export function enrichVehicle(vehicle: Vehicle): Vehicle {
-  const remainingKm = calculateRemainingKm(
+export function enrichVehicle(vehicle: Vehicle, now: Date = new Date()): Vehicle {
+  const kmReferenceDate =
+    vehicle.lastOdometerUpdateAt ||
+    vehicle.updatedAt ||
+    vehicle.createdAt;
+  const serviceStartKm = vehicle.serviceStartKm ?? vehicle.currentKm;
+  const projectedCurrentKm = calculateProjectedCurrentKm(
     vehicle.currentKm,
-    vehicle.targetInterval
+    vehicle.dailyEst,
+    kmReferenceDate,
+    now,
+  );
+  const remainingKm = calculateRemainingKm(
+    projectedCurrentKm,
+    serviceStartKm,
+    vehicle.targetInterval,
   );
   const estimatedDays = calculateEstimatedDays(remainingKm, vehicle.dailyEst);
 
   return {
     ...vehicle,
+    serviceStartKm,
+    lastOdometerUpdateAt: kmReferenceDate,
+    projectedCurrentKm,
     remainingKm,
     estimatedDays,
   };

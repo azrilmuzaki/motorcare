@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import Constants from 'expo-constants';
 
 import {
   NOTIFICATION_CHANNEL_ID,
@@ -13,10 +12,6 @@ import { useSettingsStore } from '@presentation/store/settings.store';
 let notificationHandlerConfigured = false;
 
 async function getNotificationsModule() {
-  if (Constants.appOwnership === 'expo') {
-    return null;
-  }
-
   const Notifications = await import('expo-notifications');
 
   if (!notificationHandlerConfigured) {

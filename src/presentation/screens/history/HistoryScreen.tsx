@@ -24,6 +24,7 @@ import { HistoryCard } from '@presentation/components/history/HistoryCard';
 import { useTheme } from '@presentation/hooks/useTheme';
 import type { RootStackParamList } from '@presentation/navigation/types';
 import { useAuthStore } from '@presentation/store/auth.store';
+import { useServiceLogStore } from '@presentation/store/serviceLog.store';
 import { useVehicleStore } from '@presentation/store/vehicle.store';
 
 export function HistoryScreen() {
@@ -35,16 +36,21 @@ export function HistoryScreen() {
   const {
     fetchVehicles,
     vehicles,
-    serviceHistory,
-    isLoading,
-    markingVehicleId,
-    error,
-    clearError,
-    fetchServiceHistory,
-    removeHistory,
+    isLoading: vehiclesLoading,
+    error: vehicleError,
+    clearError: clearVehicleError,
   } = useVehicleStore();
+  const {
+    logs,
+    isLoading: logsLoading,
+    error: logsError,
+    clearError: clearLogsError,
+    fetchLogs,
+    deleteLog,
+  } = useServiceLogStore();
   const openSwipeableRef = useRef<Swipeable | null>(null);
   const openSwipeableIdRef = useRef<string | null>(null);
+  const error = logsError ?? vehicleError;
 
   const refreshHistory = useCallback(() => {
     if (!user?.id) {
@@ -53,15 +59,15 @@ export function HistoryScreen() {
 
     Promise.allSettled([
       fetchVehicles(user.id),
-      fetchServiceHistory(user.id),
+      fetchLogs(user.id),
     ]).catch(() => undefined);
-  }, [fetchServiceHistory, fetchVehicles, user?.id]);
+  }, [fetchLogs, fetchVehicles, user?.id]);
 
   useEffect(() => {
     refreshHistory();
   }, [refreshHistory]);
 
-  const latestLog = useMemo(() => serviceHistory[0] ?? null, [serviceHistory]);
+  const latestLog = useMemo(() => logs[0] ?? null, [logs]);
 
   const handleDelete = useCallback(async (id: string) => {
     if (openSwipeableIdRef.current === id) {
@@ -71,11 +77,11 @@ export function HistoryScreen() {
     }
 
     try {
-      await removeHistory(id);
+      await deleteLog(id);
     } catch {
       // Store rollback and error handling are managed in the zustand store.
     }
-  }, [removeHistory]);
+  }, [deleteLog]);
 
   const handleSwipeableOpen = useCallback((id: string, ref: Swipeable | null) => {
     if (openSwipeableIdRef.current && openSwipeableIdRef.current !== id) {
@@ -93,6 +99,11 @@ export function HistoryScreen() {
     }
   }, []);
 
+  const handleDismissError = useCallback(() => {
+    clearLogsError();
+    clearVehicleError();
+  }, [clearLogsError, clearVehicleError]);
+
   const renderItem = useCallback<ListRenderItem<ServiceLog>>(
     ({ item }) => (
       <HistoryCard
@@ -108,7 +119,7 @@ export function HistoryScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
       <FlatList
-        data={serviceHistory}
+        data={logs}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         ListHeaderComponent={
@@ -135,7 +146,7 @@ export function HistoryScreen() {
               <View style={styles.heroStats}>
                 <View style={[styles.heroStat, { backgroundColor: colors.surface }]}>
                   <Text variant="headlineSmall" style={styles.heroValue}>
-                    {serviceHistory.length}
+                    {logs.length}
                   </Text>
                   <Text
                     variant="bodySmall"
@@ -184,7 +195,7 @@ export function HistoryScreen() {
           </View>
         }
         ListEmptyComponent={
-          isLoading ? null : (
+          vehiclesLoading || logsLoading ? null : (
             <EmptyState
               icon="history"
               title={t('historyScreen.emptyTitle')}
@@ -196,11 +207,11 @@ export function HistoryScreen() {
         }
         contentContainerStyle={[
           styles.list,
-          serviceHistory.length === 0 ? styles.listEmpty : null,
+          logs.length === 0 ? styles.listEmpty : null,
         ]}
         refreshControl={
           <RefreshControl
-            refreshing={isLoading && !markingVehicleId}
+            refreshing={vehiclesLoading || logsLoading}
             onRefresh={refreshHistory}
             colors={[Colors.primary]}
             tintColor={Colors.primary}
@@ -210,7 +221,7 @@ export function HistoryScreen() {
         removeClippedSubviews
       />
 
-      <Snackbar visible={Boolean(error)} onDismiss={clearError} duration={3000}>
+      <Snackbar visible={Boolean(error)} onDismiss={handleDismissError} duration={3000}>
         {error}
       </Snackbar>
     </View>
