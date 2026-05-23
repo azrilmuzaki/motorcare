@@ -67,7 +67,7 @@ export function useNotification() {
 
   const scheduleServiceReminder = useCallback(
     async (vehicle: Vehicle): Promise<void> => {
-      if (!notificationsEnabled || !vehicle.estimatedDays) {
+      if (!notificationsEnabled || vehicle.estimatedDays === undefined) {
         return;
       }
 
@@ -76,12 +76,14 @@ export function useNotification() {
         return;
       }
 
-      const notificationDate = calculateNextServiceDate(
+      let notificationDate = calculateNextServiceDate(
         vehicle.estimatedDays - NOTIFICATION_DAYS_BEFORE,
       );
 
+      // Jika tanggal pengingat sudah lewat atau hari ini, jadwalkan 10 detik dari sekarang
+      // agar user langsung mendapat peringatan bahwa servisnya sudah sangat dekat atau terlambat!
       if (notificationDate <= new Date()) {
-        return;
+        notificationDate = new Date(Date.now() + 10 * 1000);
       }
 
       const channelReady = await ensureAndroidChannel();
@@ -89,10 +91,15 @@ export function useNotification() {
         return;
       }
 
+      const bodyText = vehicle.estimatedDays > 0
+        ? `${vehicle.name} perlu ${vehicle.serviceType.toLowerCase()} dalam ${vehicle.estimatedDays} hari lagi.`
+        : `${vehicle.name} sudah melewati jadwal ${vehicle.serviceType.toLowerCase()}!`;
+
       await Notifications.scheduleNotificationAsync({
+        identifier: `service-${vehicle.id}`,
         content: {
-          title: 'Jadwal servis mendekat',
-          body: `${vehicle.name} perlu ${vehicle.serviceType.toLowerCase()} dalam ${NOTIFICATION_DAYS_BEFORE} hari lagi.`,
+          title: vehicle.estimatedDays > 0 ? 'Jadwal servis mendekat' : 'Jadwal servis terlambat',
+          body: bodyText,
           data: { vehicleId: vehicle.id },
           sound: 'default',
         },

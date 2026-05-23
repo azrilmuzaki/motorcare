@@ -7,6 +7,7 @@ export interface ServiceLog {
   createdAt: string;
   vehicleName: string;
   serviceType: string;
+  vehicleType?: string;
 }
 
 export interface CreateServiceLogInput {

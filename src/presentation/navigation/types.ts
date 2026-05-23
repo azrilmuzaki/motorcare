@@ -25,6 +25,7 @@ export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList> | undefined;
   Main: NavigatorScreenParams<MainTabParamList> | undefined;
   AddVehicle: undefined;
+  AddComponent: undefined;
   AddReminder: undefined;
   AddService: undefined;
   UpdateOdometer: { vehicleId?: string };

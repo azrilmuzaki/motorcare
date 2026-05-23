@@ -217,7 +217,6 @@ export function SettingsScreen() {
   const handleChangePhoto = useCallback(async () => {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
       if (!permission.granted) {
         setFeedbackMessage(t('settingsScreen.feedback.galleryPermission'));
         return;
@@ -230,13 +229,8 @@ export function SettingsScreen() {
         quality: 0.9,
       });
 
-      if (result.canceled || !result.assets[0]?.uri) {
-        return;
-      }
-
-      if (!user?.id) {
-        return;
-      }
+      if (result.canceled || !result.assets[0]?.uri) return;
+      if (!user?.id) return;
 
       await setProfileImageUri(user.id, result.assets[0].uri);
       setProfilePhotoModalVisible(false);
@@ -247,10 +241,7 @@ export function SettingsScreen() {
   }, [setProfileImageUri, t, user?.id]);
 
   const handleRemovePhoto = useCallback(async () => {
-    if (!user?.id) {
-      return;
-    }
-
+    if (!user?.id) return;
     await setProfileImageUri(user.id, null);
     setProfilePhotoModalVisible(false);
     setFeedbackMessage(t('settingsScreen.feedback.photoRemoved'));
@@ -261,7 +252,6 @@ export function SettingsScreen() {
       const directionChanged = isRtlLanguage(language) !== isRtlLanguage(value);
       await setLanguage(value);
       setActiveSheet(null);
-
       if (directionChanged) {
         const nextT = i18n.getFixedT(value);
         setFeedbackMessage(nextT('settingsScreen.feedback.rtlNotice'));
@@ -296,7 +286,7 @@ export function SettingsScreen() {
   );
 
   const selectedThemeLabel = useMemo(
-    () => themeOptions.find(option => option.value === themeMode)?.label ?? themeOptions[2].label,
+    () => themeOptions.find(o => o.value === themeMode)?.label ?? themeOptions[2].label,
     [themeMode, themeOptions],
   );
 
@@ -308,152 +298,120 @@ export function SettingsScreen() {
     <>
       <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + Spacing.md }]}
+        contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <View
-            style={[
-              styles.hero,
-              { backgroundColor: isDark ? colors.surfaceElevated : Colors.light.hero },
-            ]}
-          >
-            <Text variant="headlineMedium" style={[styles.heroHeading, { color: colors.onBackground }]}>
-              {t('settingsScreen.title')}
-            </Text>
+        {/* ── Hero full-width, melengkung di bawah ── */}
+        <View style={[styles.hero, { paddingTop: insets.top + Spacing.xl }]}>
+          {/* Dekorasi lingkaran */}
+          <View style={styles.heroDeco1} />
+          <View style={styles.heroDeco2} />
 
-            <View style={styles.profileRow}>
-              <Pressable
-                onPress={handleAvatarPress}
-                style={({ pressed }) => [styles.avatarButton, { opacity: pressed ? 0.9 : 1 }]}
-              >
-                <View
-                  style={[
-                    styles.avatar,
-                    {
-                      backgroundColor: isDark ? colors.surfaceVariant : colors.surface,
-                      borderColor: colors.outline,
-                    },
-                  ]}
-                >
-                  {profileImageUri ? (
-                    <Image source={{ uri: profileImageUri }} style={styles.avatarImage} />
-                  ) : (
-                    <Text variant="headlineSmall" style={styles.avatarText}>
-                      {profileInitial}
-                    </Text>
-                  )}
+          {/* Badge */}
+          {/* <View style={styles.heroBadge}>
+            <Text style={styles.heroBadgeText}>⚙️  {t('settingsScreen.eyebrow')}</Text>
+          </View> */}
 
-                  <View
-                    style={[
-                      styles.avatarBadge,
-                      {
-                        backgroundColor: Colors.white,
-                        borderColor: isDark ? colors.surfaceElevated : colors.surface,
-                      },
-                    ]}
-                  >
-                    <MaterialCommunityIcons name="pencil" size={14} color={Colors.primary} />
-                  </View>
+          {/* Title & subtitle */}
+          <Text style={styles.heroTitle}>{t('settingsScreen.title')}</Text>
+          <Text style={styles.heroSub}>{t('settingsScreen.description')}</Text>
+
+          {/* Profile Row */}
+          <View style={styles.profileRow}>
+            <Pressable
+              onPress={handleAvatarPress}
+              style={({ pressed }) => [styles.avatarButton, { opacity: pressed ? 0.9 : 1 }]}
+            >
+              <View style={styles.avatar}>
+                {profileImageUri ? (
+                  <Image source={{ uri: profileImageUri }} style={styles.avatarImage} />
+                ) : (
+                  <Text style={styles.avatarText}>{profileInitial}</Text>
+                )}
+                <View style={styles.avatarBadge}>
+                  <MaterialCommunityIcons name="pencil" size={14} color={Colors.primary} />
                 </View>
-              </Pressable>
-
-              <View style={styles.profileCopy}>
-                <Text variant="titleMedium" style={[styles.userName, { color: colors.onSurface }]}>
-                  {displayName}
-                </Text>
-                <Text variant="bodyMedium" style={[styles.userEmail, { color: colors.onSurface }]}>
-                  {userEmailText}
-                </Text>
-                <Text
-                  variant="bodySmall"
-                  style={[styles.avatarHint, { color: colors.onSurfaceVariant }]}
-                >
-                  {t('settingsScreen.avatarHint')}
-                </Text>
               </View>
-            </View>
+            </Pressable>
 
-            <Text variant="bodyMedium" style={[styles.heroText, { color: colors.onSurfaceVariant }]}>
-              {t('settingsScreen.description')}
-            </Text>
+            <View style={styles.profileCopy}>
+              <Text style={styles.userName}>{displayName}</Text>
+              <Text style={styles.userEmail}>{userEmailText}</Text>
+              <Text style={styles.avatarHint}>{t('settingsScreen.avatarHint')}</Text>
+            </View>
           </View>
         </View>
 
-        <AppCard style={styles.sectionCard}>
-          <View style={styles.sectionHeader}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: colors.onSurface }]}>
-              {t('settingsScreen.sectionTitle')}
-            </Text>
-            <Text
-              variant="bodySmall"
-              style={[styles.sectionSubtitle, { color: colors.onSurfaceVariant }]}
-            >
-              {t('settingsScreen.sectionSubtitle')}
-            </Text>
+        {/* ── Konten bawah (dengan padding horizontal) ── */}
+        <View style={styles.content}>
+          <AppCard style={styles.sectionCard}>
+            <View style={styles.sectionHeader}>
+              <Text variant="titleMedium" style={[styles.sectionTitle, { color: colors.onSurface }]}>
+                {t('settingsScreen.sectionTitle')}
+              </Text>
+              <Text
+                variant="bodySmall"
+                style={[styles.sectionSubtitle, { color: colors.onSurfaceVariant }]}
+              >
+                {t('settingsScreen.sectionSubtitle')}
+              </Text>
+            </View>
+
+            <View style={styles.sectionContent}>
+              <ActionRow
+                icon="translate"
+                title={t('settingsScreen.rows.languageTitle')}
+                description={t('settingsScreen.rows.languageDescription')}
+                value={selectedLanguageLabel}
+                onPress={() => setActiveSheet('language')}
+              />
+              <ActionRow
+                icon="theme-light-dark"
+                title={t('settingsScreen.rows.themeTitle')}
+                description={t('settingsScreen.rows.themeDescription')}
+                value={selectedThemeLabel}
+                onPress={() => setActiveSheet('theme')}
+              />
+              <ActionRow
+                icon="bell-outline"
+                title={t('settingsScreen.rows.notificationsTitle')}
+                description={t('settingsScreen.rows.notificationsDescription')}
+                right={
+                  <Switch
+                    value={notificationsEnabled}
+                    onValueChange={value => { void setNotificationsEnabled(value); }}
+                    color={Colors.primary}
+                  />
+                }
+              />
+              <ActionRow
+                icon="share-variant-outline"
+                title={t('settingsScreen.rows.shareTitle')}
+                description={t('settingsScreen.rows.shareDescription')}
+                onPress={handleShare}
+              />
+              <ActionRow
+                icon="information-outline"
+                title={t('settingsScreen.rows.aboutTitle')}
+                description={`${APP_NAME} v${APP_VERSION}`}
+              />
+              <ActionRow
+                icon="shield-check-outline"
+                title={t('settingsScreen.rows.privacyTitle')}
+                description={t('settingsScreen.rows.privacyDescription')}
+                isLast
+              />
+            </View>
+          </AppCard>
+
+          <View style={styles.logoutContainer}>
+            <AppButton
+              label={t('common.logout')}
+              onPress={logout}
+              variant="outlined"
+              icon="logout"
+            />
           </View>
-
-          <View style={styles.sectionContent}>
-            <ActionRow
-              icon="translate"
-              title={t('settingsScreen.rows.languageTitle')}
-              description={t('settingsScreen.rows.languageDescription')}
-              value={selectedLanguageLabel}
-              onPress={() => setActiveSheet('language')}
-            />
-
-            <ActionRow
-              icon="theme-light-dark"
-              title={t('settingsScreen.rows.themeTitle')}
-              description={t('settingsScreen.rows.themeDescription')}
-              value={selectedThemeLabel}
-              onPress={() => setActiveSheet('theme')}
-            />
-
-            <ActionRow
-              icon="bell-outline"
-              title={t('settingsScreen.rows.notificationsTitle')}
-              description={t('settingsScreen.rows.notificationsDescription')}
-              right={
-                <Switch
-                  value={notificationsEnabled}
-                  onValueChange={value => {
-                    void setNotificationsEnabled(value);
-                  }}
-                  color={Colors.primary}
-                />
-              }
-            />
-
-            <ActionRow
-              icon="share-variant-outline"
-              title={t('settingsScreen.rows.shareTitle')}
-              description={t('settingsScreen.rows.shareDescription')}
-              onPress={handleShare}
-            />
-
-            <ActionRow
-              icon="information-outline"
-              title={t('settingsScreen.rows.aboutTitle')}
-              description={`${APP_NAME} v${APP_VERSION}`}
-            />
-
-            <ActionRow
-              icon="shield-check-outline"
-              title={t('settingsScreen.rows.privacyTitle')}
-              description={t('settingsScreen.rows.privacyDescription')}
-              isLast
-            />
-          </View>
-        </AppCard>
-
-        <View style={styles.logoutContainer}>
-          <AppButton
-            label={t('common.logout')}
-            onPress={logout}
-            variant="outlined"
-            icon="logout"
-          />
         </View>
       </ScrollView>
 
@@ -465,9 +423,7 @@ export function SettingsScreen() {
       >
         <LanguageSelector
           selectedLanguage={language}
-          onSelect={value => {
-            void handleLanguageSelect(value);
-          }}
+          onSelect={value => { void handleLanguageSelect(value); }}
         />
       </SelectionSheet>
 
@@ -480,23 +436,16 @@ export function SettingsScreen() {
         <View style={styles.sheetOptions}>
           {themeOptions.map(option => {
             const selected = option.value === themeMode;
-
             return (
               <Pressable
                 key={option.value}
-                onPress={() => {
-                  void handleThemeSelect(option.value);
-                }}
+                onPress={() => { void handleThemeSelect(option.value); }}
                 style={({ pressed }) => [
                   styles.sheetOption,
                   {
                     backgroundColor: selected
-                      ? isDark
-                        ? 'rgba(36, 107, 253, 0.14)'
-                        : Colors.primaryLight
-                      : isDark
-                        ? colors.surfaceVariant
-                        : colors.surface,
+                      ? isDark ? 'rgba(36,107,253,0.14)' : Colors.primaryLight
+                      : isDark ? colors.surfaceVariant : colors.surface,
                     borderColor: selected ? Colors.primary : colors.outline,
                     opacity: pressed ? 0.9 : 1,
                   },
@@ -516,7 +465,6 @@ export function SettingsScreen() {
                     {option.description}
                   </Text>
                 </View>
-
                 {selected ? (
                   <MaterialCommunityIcons name="check-circle" size={22} color={Colors.primary} />
                 ) : null}
@@ -532,12 +480,8 @@ export function SettingsScreen() {
         userName={displayName}
         profileInitial={profileInitial}
         onDismiss={() => setProfilePhotoModalVisible(false)}
-        onChangePhoto={() => {
-          void handleChangePhoto();
-        }}
-        onRemovePhoto={() => {
-          void handleRemovePhoto();
-        }}
+        onChangePhoto={() => { void handleChangePhoto(); }}
+        onRemovePhoto={() => { void handleRemovePhoto(); }}
       />
 
       <Snackbar
@@ -552,41 +496,87 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+
   scroll: {
-    paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xxxl,
-    gap: Spacing.lg,
+    // Tidak ada paddingHorizontal — hero mentok ke tepi
   },
-  header: {
-    paddingTop: Spacing.xs,
-  },
+
+  // ── Hero full-width ───────────────────────────────
   hero: {
-    borderRadius: 28,
-    padding: Spacing.xl,
-    gap: Spacing.md,
+    backgroundColor: '#185FA5',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.xxl,
+    overflow: 'hidden',
+    gap: Spacing.sm,
   },
-  heroHeading: {
+  heroDeco1: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    top: -50,
+    right: -40,
+  },
+  heroDeco2: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    bottom: -30,
+    right: 60,
+  },
+  heroBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  heroBadgeText: {
+    fontSize: 11,
+    fontFamily: 'Poppins_600SemiBold',
+    color: '#B5D4F4',
+  },
+  heroTitle: {
+    fontSize: 22,
     fontFamily: 'Poppins_700Bold',
-    marginBottom: Spacing.sm,
+    color: '#fff',
+    lineHeight: 30,
+    marginTop: 4,
   },
+  heroSub: {
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
+    color: 'rgba(255,255,255,0.7)',
+    lineHeight: 19,
+  },
+
+  // ── Profile Row (di dalam hero) ───────────────────
   profileRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: Spacing.lg,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: BorderRadius.lg,
+    marginTop: Spacing.sm,
+    padding: Spacing.md,
   },
   avatarButton: {
     borderRadius: BorderRadius.full,
   },
   avatar: {
-    width: 92,
-    height: 92,
+    width: 72,
+    height: 72,
     borderRadius: BorderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     overflow: 'hidden',
   },
   avatarImage: {
@@ -597,36 +587,48 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 2,
     bottom: 2,
-    width: 30,
-    height: 30,
+    width: 26,
+    height: 26,
     borderRadius: BorderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Colors.white,
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
   },
   avatarText: {
+    fontSize: 26,
     fontFamily: 'Poppins_700Bold',
-    color: Colors.primary,
+    color: '#fff',
   },
   profileCopy: {
     flex: 1,
-    gap: 6,
+    gap: 4,
     paddingTop: 4,
   },
   userName: {
+    fontSize: 15,
     fontFamily: 'Poppins_700Bold',
+    color: '#fff',
   },
   userEmail: {
+    fontSize: 12,
     fontFamily: 'Poppins_500Medium',
+    color: 'rgba(255,255,255,0.75)',
   },
   avatarHint: {
+    fontSize: 11,
     fontFamily: 'Poppins_400Regular',
-    lineHeight: 20,
+    color: 'rgba(255,255,255,0.55)',
+    lineHeight: 18,
+    marginTop: 2,
   },
-  heroText: {
-    fontFamily: 'Poppins_400Regular',
-    lineHeight: 23,
-    marginTop: Spacing.sm,
+
+  // ── Konten bawah ─────────────────────────────────
+  content: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    gap: Spacing.lg,
   },
   sectionCard: {
     gap: Spacing.lg,
@@ -645,6 +647,8 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
   },
+
+  // ── Action Row ────────────────────────────────────
   rowPressable: {
     borderRadius: BorderRadius.md,
   },
@@ -661,9 +665,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rowCopy: {
-    flex: 1,
-  },
+  rowCopy: { flex: 1 },
   rowTitle: {
     fontFamily: 'Poppins_600SemiBold',
   },
@@ -681,9 +683,13 @@ const styles = StyleSheet.create({
   rowValue: {
     fontFamily: 'Poppins_500Medium',
   },
+
+  // ── Logout ────────────────────────────────────────
   logoutContainer: {
     paddingBottom: Spacing.sm,
   },
+
+  // ── Modal / Sheet ─────────────────────────────────
   modalWrapper: {
     justifyContent: 'flex-end',
     margin: 0,
@@ -726,9 +732,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.md,
   },
-  sheetOptionCopy: {
-    flex: 1,
-  },
+  sheetOptionCopy: { flex: 1 },
   sheetOptionTitle: {
     fontFamily: 'Poppins_600SemiBold',
   },

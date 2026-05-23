@@ -7,6 +7,7 @@ import { Colors } from '@core/theme/colors';
 import { LoadingOverlay } from '@presentation/components/common/LoadingOverlay';
 import { useTheme } from '@presentation/hooks/useTheme';
 import { AddVehicleScreen } from '@presentation/screens/home/AddVehicleScreen';
+import { AddComponentScreen } from '@presentation/screens/home/AddComponentScreen';
 import { AddReminderScreen } from '@presentation/screens/home/AddReminderScreen';
 import { AddServiceScreen } from '@presentation/screens/home/AddServiceScreen';
 import { UpdateOdometerScreen } from '@presentation/screens/home/UpdateOdometerScreen';
@@ -82,6 +83,14 @@ export function AppNavigator() {
               options={{
                 headerShown: true,
                 title: t('navigation.addVehicle'),
+              }}
+            />
+            <Stack.Screen
+              name="AddComponent"
+              component={AddComponentScreen}
+              options={{
+                headerShown: true,
+                title: 'Tambah Komponen',
               }}
             />
             <Stack.Screen

@@ -36,3 +36,22 @@ export type UpdateVehicleInput = Partial<CreateVehicleInput> & {
 };
 
 export type ServiceStatus = 'ok' | 'warning' | 'urgent' | 'overdue';
+
+export interface VehicleComponent {
+  id: string;
+  vehicleId: string;
+  name: string;
+  icon: string;
+  targetInterval: number;
+  lastServiceKm: number;
+  createdAt: string;
+  updatedAt: string;
+  
+  // Computed fields
+  remainingKm?: number;
+  estimatedDays?: number;
+}
+
+export type CreateComponentInput = Omit<VehicleComponent, 'id' | 'createdAt' | 'updatedAt' | 'remainingKm' | 'estimatedDays'>;
+
+export type UpdateComponentInput = Partial<CreateComponentInput>;

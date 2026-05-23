@@ -11,6 +11,7 @@ import { BorderRadius, Spacing } from '@core/theme/typography';
 import { getDateFnsLocale } from '@core/utils/i18n.utils';
 import type { ServiceLog } from '@domain/types/serviceLog.types';
 import { useTheme } from '@presentation/hooks/useTheme';
+import { VEHICLE_TYPE_ICONS } from '@core/constants/app.constants';
 
 interface HistoryCardProps {
   item: ServiceLog;
@@ -50,6 +51,8 @@ export const HistoryCard = memo<HistoryCardProps>(({
   const handleSwipeableClose = useCallback(() => {
     onSwipeableClose(item.id);
   }, [item.id, onSwipeableClose]);
+
+  const typeIcon = VEHICLE_TYPE_ICONS[item.vehicleType as any] || 'car';
 
   const renderRightActions = useCallback(
     (
@@ -118,20 +121,49 @@ export const HistoryCard = memo<HistoryCardProps>(({
             },
           ]}
         >
-          <View style={styles.content}>
-            <Text variant="titleSmall" style={[styles.vehicleName, { color: colors.onSurface }]}>
-              {item.vehicleName}
-            </Text>
+          <View style={styles.cardInner}>
+            {/* Left: Icon box */}
+            <View style={[styles.iconBox, { backgroundColor: isDark ? colors.background : Colors.primaryLight }]}>
+              <MaterialCommunityIcons name={typeIcon as any} size={24} color={Colors.primary} />
+            </View>
 
-            <View style={styles.dateRow}>
-              <MaterialCommunityIcons
-                name="calendar-month-outline"
-                size={16}
-                color={colors.onSurfaceVariant}
-              />
-              <Text variant="bodyMedium" style={[styles.serviceDate, { color: colors.onSurfaceVariant }]}>
-                {formattedDate}
+            {/* Middle: Details */}
+            <View style={styles.details}>
+              <Text variant="titleMedium" style={[styles.vehicleName, { color: colors.onSurface }]} numberOfLines={1}>
+                {item.vehicleName}
               </Text>
+              
+              {/* Notes/Service description */}
+              {item.notes ? (
+                <Text variant="bodyMedium" style={[styles.serviceNotes, { color: colors.onSurface }]} numberOfLines={2}>
+                  {item.notes}
+                </Text>
+              ) : (
+                <Text variant="bodyMedium" style={[styles.serviceNotes, { color: colors.onSurfaceVariant }]} numberOfLines={1}>
+                  {item.serviceType || 'Servis Rutin'}
+                </Text>
+              )}
+
+              {/* Date Row */}
+              <View style={styles.dateRow}>
+                <MaterialCommunityIcons
+                  name="calendar-month-outline"
+                  size={14}
+                  color={colors.onSurfaceVariant}
+                />
+                <Text variant="bodySmall" style={[styles.serviceDate, { color: colors.onSurfaceVariant }]}>
+                  {formattedDate}
+                </Text>
+              </View>
+            </View>
+
+            {/* Right: Mileage Badge */}
+            <View style={styles.rightSection}>
+              <View style={[styles.kmBadge, { backgroundColor: isDark ? colors.background : Colors.primaryLight }]}>
+                <Text style={[styles.kmBadgeText, { color: Colors.primary }]}>
+                  {item.serviceKm.toLocaleString(language)} km
+                </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -151,19 +183,40 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: BorderRadius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: Spacing.lg,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 10 },
-    shadowRadius: 20,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 2,
   },
-  content: {
-    gap: Spacing.xs,
+  cardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  iconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  details: {
+    flex: 1,
+    gap: 2,
   },
   vehicleName: {
     fontFamily: 'Poppins_700Bold',
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  serviceNotes: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 2,
   },
   dateRow: {
     flexDirection: 'row',
@@ -172,6 +225,21 @@ const styles = StyleSheet.create({
   },
   serviceDate: {
     fontFamily: 'Poppins_500Medium',
+    fontSize: 11,
+    lineHeight: 14,
+  },
+  rightSection: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  kmBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+  },
+  kmBadgeText: {
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 12,
   },
   rightActionWrapper: {
     width: 96,

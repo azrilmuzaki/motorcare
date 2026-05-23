@@ -5,7 +5,14 @@ import {
 } from '@domain/types/serviceLog.types';
 
 function mapRowToServiceLog(row: Record<string, unknown>): ServiceLog {
-  const joinedVehicle = (row.vehicles as Record<string, unknown> | null) ?? null;
+  let joinedVehicle: Record<string, unknown> | null = null;
+  if (row.vehicles) {
+    if (Array.isArray(row.vehicles)) {
+      joinedVehicle = (row.vehicles[0] as Record<string, unknown> | null) ?? null;
+    } else {
+      joinedVehicle = row.vehicles as Record<string, unknown>;
+    }
+  }
 
   return {
     id: row.id as string,
@@ -16,6 +23,7 @@ function mapRowToServiceLog(row: Record<string, unknown>): ServiceLog {
     createdAt: row.created_at as string,
     vehicleName: (joinedVehicle?.name as string | undefined) ?? 'Kendaraan',
     serviceType: (joinedVehicle?.service_type as string | undefined) ?? 'Servis Rutin',
+    vehicleType: (joinedVehicle?.type as string | undefined) ?? 'car',
   };
 }
 
@@ -28,10 +36,11 @@ export const ServiceLogService = {
       .from('service_logs')
       .select(`
         *,
-        vehicles!inner(name, user_id, service_type)
+        vehicles!inner(name, user_id, service_type, type)
       `)
       .eq('vehicles.user_id', userId)
-      .order('service_date', { ascending: false });
+      .order('service_date', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapRowToServiceLog);
@@ -43,9 +52,10 @@ export const ServiceLogService = {
   async getServiceLogsByVehicle(vehicleId: string): Promise<ServiceLog[]> {
     const { data, error } = await supabase
       .from('service_logs')
-      .select('*, vehicles(name, service_type)')
+      .select('*, vehicles(name, service_type, type)')
       .eq('vehicle_id', vehicleId)
-      .order('service_date', { ascending: false });
+      .order('service_date', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapRowToServiceLog);
@@ -63,7 +73,7 @@ export const ServiceLogService = {
         service_km: input.serviceKm,
         notes: input.notes ?? null,
       })
-      .select('*, vehicles(name, service_type)')
+      .select('*, vehicles(name, service_type, type)')
       .single();
 
     if (error) throw new Error(error.message);

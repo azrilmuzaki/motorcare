@@ -1,608 +1,644 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import {
   ScrollView,
   StyleSheet,
   Pressable,
   View,
+  Alert,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import type { RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { FAB, Snackbar, Text } from 'react-native-paper';
+import { FAB, Snackbar, Text, Button, Menu, Portal, Modal } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '@core/theme/colors';
 import { BorderRadius, Spacing } from '@core/theme/typography';
-import type { Vehicle } from '@domain/types/vehicle.types';
+import type { Vehicle, ServiceStatus, VehicleComponent } from '@domain/types/vehicle.types';
 import { VEHICLE_TYPE_ICONS } from '@core/constants/app.constants';
 import { useTheme } from '@presentation/hooks/useTheme';
-import { useServiceLogs } from '@presentation/hooks/useServiceLogs';
 import { useVehicles } from '@presentation/hooks/useVehicles';
-import type { MainTabParamList, RootStackParamList } from '@presentation/navigation/types';
-import { useReminderStore } from '@presentation/store/reminder.store';
+import type { RootStackParamList } from '@presentation/navigation/types';
 import { useVehicleStore } from '@presentation/store/vehicle.store';
+import { useComponentStore } from '@presentation/store/component.store';
+import { useServiceLogStore } from '@presentation/store/serviceLog.store';
+import { enrichComponent, getServiceStatus } from '@domain/logic/vehicle.logic';
+import { ComponentCard } from '@presentation/components/ComponentCard';
 
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
-  const { t, i18n } = useTranslation();
-  const route = useRoute<RouteProp<MainTabParamList, 'Home'>>();
+  const { i18n } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {
-    vehicles,
-    error,
-    successMessage,
-    clearError,
-    clearSuccessMessage,
-  } = useVehicles();
-  const { logs: serviceLogs } = useServiceLogs();
-  const { reminders, loadReminders } = useReminderStore();
-  const [fabOpen, setFabOpen] = useState(false);
-  const [reminderSnackbar, setReminderSnackbar] = useState(route.params?.reminderMessage ?? '');
 
-  const handleAddVehicle = useCallback(() => {
-    navigation.navigate('AddVehicle');
-    setFabOpen(false);
-  }, [navigation]);
+  const { vehicles, error, successMessage, clearError, clearSuccessMessage, selectVehicle } = useVehicles();
+  const { components, loadComponents } = useComponentStore();
 
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [selectedComponentAction, setSelectedComponentAction] = useState<VehicleComponent | null>(null);
+
+  useEffect(() => {
+    if (vehicles.length > 0 && !selectedVehicleId) {
+      setSelectedVehicleId(vehicles[0].id);
+    } else if (vehicles.length === 0 && selectedVehicleId) {
+      setSelectedVehicleId(null);
+    } else if (selectedVehicleId && !vehicles.find(v => v.id === selectedVehicleId)) {
+      setSelectedVehicleId(vehicles.length > 0 ? vehicles[0].id : null);
+    }
+  }, [vehicles, selectedVehicleId]);
+
+  const activeVehicle = useMemo(() => {
+    return vehicles.find(v => v.id === selectedVehicleId) || vehicles[0] || null;
+  }, [vehicles, selectedVehicleId]);
+
+  useEffect(() => {
+    if (activeVehicle) {
+      void loadComponents(activeVehicle.id);
+    }
+  }, [activeVehicle?.id, loadComponents]);
+
+  const enrichedComponents = useMemo(() => {
+    if (!activeVehicle) return [];
+    return components.map(c => enrichComponent(
+      c,
+      activeVehicle.projectedCurrentKm ?? activeVehicle.currentKm,
+      activeVehicle.dailyEst
+    ));
+  }, [components, activeVehicle]);
+
+  const overallStatus = useMemo(() => {
+    if (enrichedComponents.length === 0) return 'ok';
+    let worstStatus: ServiceStatus = 'ok';
+    for (const comp of enrichedComponents) {
+      const status = getServiceStatus(comp.remainingKm ?? 0);
+      if (status === 'overdue') return 'overdue';
+      if (status === 'urgent') worstStatus = 'urgent';
+      if (status === 'warning' && worstStatus === 'ok') worstStatus = 'warning';
+    }
+    return worstStatus;
+  }, [enrichedComponents]);
+
+  const handleAddVehicle = useCallback(() => navigation.navigate('AddVehicle'), [navigation]);
   const handleUpdateOdometer = useCallback(() => {
-    navigation.navigate('UpdateOdometer', { vehicleId: undefined });
-    setFabOpen(false);
-  }, [navigation]);
+    navigation.navigate('UpdateOdometer', { vehicleId: activeVehicle?.id });
+  }, [navigation, activeVehicle]);
 
-  const handleAddReminder = useCallback(() => {
-    navigation.navigate('AddReminder');
-    setFabOpen(false);
-  }, [navigation]);
+  const handleVehicleSelect = (vehicle: Vehicle) => {
+    setSelectedVehicleId(vehicle.id);
+    useVehicleStore.getState().selectVehicle(vehicle);
+    setMenuVisible(false);
+  };
 
-  const handleAddService = useCallback(() => {
-    navigation.navigate('AddService');
-    setFabOpen(false);
-  }, [navigation]);
+  const handleComponentAction = (component: VehicleComponent) => {
+    setSelectedComponentAction(component);
+  };
 
-  const handleVehiclePress = useCallback(
-    (vehicle: Vehicle) => {
-      useVehicleStore.getState().selectVehicle(vehicle);
-      navigation.navigate('VehicleDetail', { vehicleId: vehicle.id });
-    },
-    [navigation],
-  );
+  const handleMarkComponentServiced = async () => {
+    if (!selectedComponentAction || !activeVehicle) return;
+    try {
+      const projectedCurrentKm = activeVehicle.projectedCurrentKm ?? activeVehicle.currentKm;
+      const roundedServiceKm = Math.round(projectedCurrentKm);
+      await useComponentStore.getState().updateComponent(selectedComponentAction.id, {
+        lastServiceKm: roundedServiceKm,
+      });
+      await useServiceLogStore.getState().addLog({
+        vehicleId: activeVehicle.id,
+        serviceDate: new Date().toISOString(),
+        serviceKm: roundedServiceKm,
+        notes: `Servis komponen selesai: ${selectedComponentAction.name}`,
+      });
+      setSelectedComponentAction(null);
+    } catch (e) {
+      console.error('Failed to mark as serviced', e);
+      Alert.alert('Gagal Menyimpan', 'Gagal menyimpan riwayat servis komponen ke database. Silakan coba lagi.');
+    }
+  };
 
-  React.useEffect(() => {
-    void loadReminders();
-  }, [loadReminders]);
-
-
-  const urgentVehicles = useMemo(
-    () => vehicles.filter(vehicle => (vehicle.remainingKm ?? 0) <= 500).length,
-    [vehicles],
-  );
-
-  const nextReminder = useMemo(
-    () => reminders[0] ?? null,
-    [reminders],
-  );
-  const reminderCount = reminders.length;
-  const serviceCount = serviceLogs.length;
-
-  const featuredVehicle = useMemo(
-    () => vehicles.length > 0 ? vehicles[0] : null,
-    [vehicles],
-  );
+  const handleDeleteComponent = async () => {
+    if (!selectedComponentAction) return;
+    try {
+      await useComponentStore.getState().deleteComponent(selectedComponentAction.id);
+      setSelectedComponentAction(null);
+    } catch (e) {
+      console.error('Failed to delete component', e);
+    }
+  };
 
   const locale = (i18n.resolvedLanguage as 'id' | 'en' | 'ja' | 'ar') ?? 'id';
 
-  const listHeader = useMemo(
-    () => (
-      <View style={styles.header}>
-        <View
-          style={[
-            styles.hero,
-            { backgroundColor: colors.surface },
-          ]}
-        >
-          <Text variant="labelLarge" style={styles.eyebrow}>
-            {t('homeScreen.eyebrow')}
-          </Text>
-          <Text variant="headlineMedium" style={[styles.greeting, { color: colors.onBackground }]}>
-            {t('homeScreen.title')}
-          </Text>
-          <Text
-            variant="bodyMedium"
-            style={[styles.subGreeting, { color: colors.onSurfaceVariant }]}
-          >
-            {t('homeScreen.subtitle')}
-          </Text>
-
-          <View style={styles.summaryRow}> 
-            <View style={[styles.summaryBadge, { borderColor: Colors.primary }]}> 
-              <Text variant="headlineSmall" style={[styles.summaryBadgeValue, { color: Colors.primary }]}> 
-                {reminderCount}
-              </Text>
-              <Text variant="bodySmall" style={[styles.summaryBadgeLabel, { color: colors.onSurfaceVariant }]}> 
-                Pengingat
-              </Text>
-            </View>
-            <View style={[styles.summaryBadge, { borderColor: Colors.secondary }]}> 
-              <Text variant="headlineSmall" style={[styles.summaryBadgeValue, { color: Colors.secondary }]}> 
-                {serviceCount}
-              </Text>
-              <Text variant="bodySmall" style={[styles.summaryBadgeLabel, { color: colors.onSurfaceVariant }]}> 
-                Servis
-              </Text>
-            </View>
-            <View style={[styles.summaryBadge, { borderColor: Colors.success }]}> 
-              <Text variant="headlineSmall" style={[styles.summaryBadgeValue, { color: Colors.success }]}> 
-                {vehicles.length}
-              </Text>
-              <Text variant="bodySmall" style={[styles.summaryBadgeLabel, { color: colors.onSurfaceVariant }]}> 
-                Kendaraan
-              </Text>
-            </View>
-          </View>
-        </View>
+  // ── Empty State ──────────────────────────────────────────────────────────
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <View style={[styles.emptyIconBox, { backgroundColor: isDark ? colors.surfaceElevated : colors.surface }]}>
+        <MaterialCommunityIcons name="garage-open" size={64} color={Colors.primary} />
       </View>
-    ),
-    [
-      colors.onBackground,
-      colors.onSurface,
-      colors.onSurfaceVariant,
-      isDark,
-      i18n.resolvedLanguage,
-      t,
-      urgentVehicles,
-      vehicles.length,
-      reminderCount,
-      serviceCount,
-    ],
+      <Text variant="headlineSmall" style={[styles.emptyTitle, { color: colors.onBackground }]}>
+        Garasi Anda Kosong
+      </Text>
+      <Text variant="bodyMedium" style={[styles.emptyDesc, { color: colors.onSurfaceVariant }]}>
+        Tambahkan kendaraan pertama Anda untuk mulai memantau servis, pengingat odometer, dan riwayat perawatan secara otomatis.
+      </Text>
+      <Button
+        mode="contained"
+        onPress={handleAddVehicle}
+        style={styles.emptyButton}
+        contentStyle={styles.emptyButtonContent}
+        labelStyle={styles.emptyButtonLabel}
+      >
+        Tambah Kendaraan Pertama
+      </Button>
+    </View>
   );
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {listHeader}
+  // ── Blue Hero Area ───────────────────────────────────────────────────────
+  const renderBlueHero = () => {
+    if (!activeVehicle) return null;
+    const typeIcon = VEHICLE_TYPE_ICONS[activeVehicle.type] ?? 'car';
+    const projectedCurrentKm = activeVehicle.projectedCurrentKm ?? activeVehicle.currentKm;
 
-        {/* Pengingat Mendatang Section */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: colors.onBackground }]}>
-              Pengingat Mendatang
-            </Text>
-            <Pressable onPress={() => navigation.navigate('Main', { screen: 'History' })}>
-              <Text style={[styles.linkText, { color: Colors.primary }]}>Lihat Detail</Text>
-            </Pressable>
-          </View>
-          
-          {nextReminder ? (
-            <View style={[styles.reminderDetailCard, { backgroundColor: isDark ? colors.surfaceElevated : colors.surface }]}>
-              <View style={styles.reminderHeader}>
-                <MaterialCommunityIcons name="wrench" size={20} color={Colors.secondary} />
-                <Text variant="bodySmall" style={[styles.reminderServiceType, { color: colors.onBackground }]}>
-                  {nextReminder.serviceType}
-                </Text>
-              </View>
+    // Status banner config
+    let bannerBg: string = Colors.success;
+    let bannerTitle = 'SANGAT BAIK';
+    let bannerDesc = 'Semua komponen aman';
+    let bannerIcon: any = 'check-circle';
+    if (overallStatus === 'overdue' || overallStatus === 'urgent') {
+      bannerBg = Colors.error;
+      bannerTitle = 'PERHATIAN';
+      bannerDesc = 'Ada komponen yang harus segera diganti';
+      bannerIcon = 'alert-circle';
+    } else if (overallStatus === 'warning') {
+      bannerBg = Colors.warning;
+      bannerTitle = 'PERINGATAN';
+      bannerDesc = 'Beberapa komponen mendekati jadwal servis';
+      bannerIcon = 'alert';
+    }
 
-              <View style={styles.reminderVehicle}>
-                <MaterialCommunityIcons name="car" size={18} color={Colors.primary} />
-                <Text variant="bodySmall" style={[styles.reminderVehicleInfo, { color: colors.onBackground }]}>
-                  {nextReminder.vehicleName}
-                </Text>
-              </View>
+    return (
+      <View style={[styles.blueHero, { paddingTop: insets.top + Spacing.sm }]}>
+        {/* Dekorasi lingkaran */}
+        <View style={styles.heroDeco1} />
+        <View style={styles.heroDeco2} />
 
-              <View style={styles.reminderItem}>
-                <View style={styles.reminderLabel}>
-                  <Text variant="labelSmall" style={[{ color: colors.onSurfaceVariant }]}>
-                    Tanggal Pengingat
-                  </Text>
-                </View>
-                <Text variant="bodySmall" style={[styles.cardInfo, { color: colors.onBackground }]}>
-                  {new Date(nextReminder.reminderDate).toLocaleDateString(locale, {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </Text>
-              </View>
-
-              {nextReminder.note ? (
-                <View style={styles.reminderItem}>
-                  <View style={styles.reminderLabel}>
-                    <Text variant="labelSmall" style={[{ color: colors.onSurfaceVariant }]}>
-                      Catatan
-                    </Text>
-                  </View>
-                  <Text variant="bodySmall" style={[styles.cardInfo, { color: colors.onBackground }]}>
-                    {nextReminder.note}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-          ) : (
-            <View style={[styles.emptyCard, { backgroundColor: isDark ? colors.surfaceElevated : colors.surface }]}>
-              <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>Belum Ada Pengingat</Text>
-              <Text style={[styles.emptySubtext, { color: colors.onSurfaceVariant }]}>Tambah pengingat untuk melihatnya di sini</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Service Data Section */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: colors.onBackground }]}>
-              Data Servis
-            </Text>
-            <Pressable onPress={() => navigation.navigate('Main', { screen: 'History' })}>
-              <Text style={[styles.linkText, { color: Colors.primary }]}>Lihat Detail</Text>
-            </Pressable>
-          </View>
-          
-          {serviceCount > 0 ? (
-            <View style={[styles.featuredCard, { backgroundColor: isDark ? colors.surfaceElevated : colors.surface }]}>
-              <MaterialCommunityIcons name="wrench" size={20} color={Colors.secondary} />
-              <View style={styles.cardContent}>
-                <Text variant="labelSmall" style={[styles.cardLabel, { color: colors.onSurfaceVariant }]}>Total Servis</Text>
-                <Text variant="titleSmall" style={[styles.cardValue, { color: colors.onBackground }]}>
-                  {serviceCount} servis
-                </Text>
-                <Text variant="bodySmall" style={[styles.cardInfo, { color: colors.onSurfaceVariant }]}>
-                  Bulan ini
-                </Text>
-              </View>
-            </View>
-          ) : (
-            <View style={[styles.emptyCard, { backgroundColor: isDark ? colors.surfaceElevated : colors.surface }]}>
-              <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>Belum Ada Data Servis</Text>
-              <Text style={[styles.emptySubtext, { color: colors.onSurfaceVariant }]}>Tambah catatan servis untuk melihatnya di sini</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Kendaraan Section */}
-        {featuredVehicle ? (
-          <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <Text variant="titleMedium" style={[styles.sectionTitle, { color: colors.onBackground }]}>
-                Kendaraan
-              </Text>
-              <Pressable onPress={() => navigation.navigate('VehiclesList')}>
-                <Text style={[styles.linkText, { color: Colors.primary }]}>Lihat Semua</Text>
+        {/* ── Header: vehicle selector + wrench ── */}
+        <View style={styles.appHeader}>
+          <Menu
+            visible={menuVisible}
+            onDismiss={() => setMenuVisible(false)}
+            anchor={
+              <Pressable style={styles.vehicleSelectorBtn} onPress={() => setMenuVisible(true)}>
+                <MaterialCommunityIcons name={typeIcon} size={24} color="#fff" />
+                <Text style={styles.vehicleSelectorText}>{activeVehicle.name}</Text>
+                <MaterialCommunityIcons name="chevron-down" size={20} color="rgba(255,255,255,0.8)" />
               </Pressable>
+            }
+            contentStyle={{ backgroundColor: isDark ? colors.surfaceElevated : colors.surface }}
+          >
+            {vehicles.map((v) => (
+              <Menu.Item
+                key={v.id}
+                onPress={() => handleVehicleSelect(v)}
+                title={v.name}
+                leadingIcon={VEHICLE_TYPE_ICONS[v.type] ?? 'car'}
+              />
+            ))}
+            <Menu.Item
+              onPress={handleAddVehicle}
+              title="Tambah Kendaraan"
+              leadingIcon="plus"
+              titleStyle={{ color: Colors.primary }}
+            />
+          </Menu>
+
+          <Pressable
+            style={styles.settingsBtn}
+            onPress={() => navigation.navigate('VehicleDetail', { vehicleId: activeVehicle.id })}
+          >
+            <MaterialCommunityIcons name="wrench-outline" size={22} color="#fff" />
+          </Pressable>
+        </View>
+
+        {/* ── Odometer ── */}
+        <View style={styles.odometerSection}>
+          {/* Badges */}
+          <View style={styles.badgeRow}>
+            <View style={styles.pillBadge}>
+              <View style={[styles.dot, { backgroundColor: Colors.success }]} />
+              <Text style={styles.badgeText}>Auto-Track</Text>
             </View>
-            <Pressable
-              style={[styles.vehicleRow, { backgroundColor: isDark ? colors.surfaceElevated : colors.surface }]}
-              onPress={() => handleVehiclePress(featuredVehicle)}
-              android_ripple={{ color: 'rgba(0, 0, 0, 0.08)' }}
-            >
-              <View style={[styles.vehicleIconBox, { backgroundColor: isDark ? Colors.dark.hero : Colors.primaryLight }]}> 
-                <MaterialCommunityIcons
-                  name={VEHICLE_TYPE_ICONS[featuredVehicle.type] ?? 'car'}
-                  size={22}
-                  color={Colors.primary}
-                />
-              </View>
-              <View style={styles.vehicleTextContent}>
-                <Text variant="titleMedium" style={[styles.vehicleNameSimple, { color: colors.onBackground }]}> 
-                  {featuredVehicle.name}
-                </Text>
-                <Text variant="bodySmall" style={[styles.vehicleKmSimple, { color: colors.onSurfaceVariant }]}> 
-                  {(featuredVehicle.projectedCurrentKm ?? featuredVehicle.currentKm).toLocaleString(locale)} km
-                </Text>
-              </View>
+            <View style={styles.pillBadge}>
+              <View style={[styles.dot, { backgroundColor: '#B5D4F4' }]} />
+              <Text style={styles.badgeText}>Odometer Update</Text>
+            </View>
+          </View>
+
+          {/* Odometer card */}
+          <View style={styles.odometerCard}>
+            <View style={styles.odometerContent}>
+              <MaterialCommunityIcons name="speedometer" size={36} color="#fff" />
+              <Text style={styles.odometerValue}>
+                {projectedCurrentKm.toLocaleString(locale)}{' '}
+                <Text style={styles.odometerUnit}>km</Text>
+              </Text>
+            </View>
+            <Pressable style={styles.odoSettingsBtn} onPress={handleUpdateOdometer}>
+              <MaterialCommunityIcons name="cog" size={22} color="#185FA5" />
             </Pressable>
           </View>
-        ) : (
-          <View style={styles.sectionContainer}>
-            <Text variant="titleMedium" style={[styles.sectionTitle, { color: colors.onBackground }]}>
-              Kendaraan
-            </Text>
-            <View style={[styles.emptyCard, { backgroundColor: isDark ? colors.surfaceElevated : colors.surface }]}>
-              <Text style={[styles.emptyText, { color: colors.onSurfaceVariant }]}>Belum Ada Kendaraan</Text>
-              <Text style={[styles.emptySubtext, { color: colors.onSurfaceVariant }]}>Tambah kendaraan untuk memulai</Text>
+        </View>
+
+        {/* ── Status Banner ── */}
+        {enrichedComponents.length > 0 && (
+          <View style={[styles.statusBanner, { backgroundColor: bannerBg }]}>
+            <Text style={styles.statusBannerTitle}>{bannerTitle}</Text>
+            <View style={styles.statusBannerInner}>
+              <MaterialCommunityIcons name={bannerIcon} size={18} color={bannerBg} />
+              <Text style={styles.statusBannerDesc}>{bannerDesc}</Text>
             </View>
           </View>
         )}
+      </View>
+    );
+  };
+
+  // ── Components Grid ──────────────────────────────────────────────────────
+  const renderComponentsGrid = () => {
+    if (!activeVehicle) return null;
+    return (
+      <View style={styles.componentsSection}>
+        <View style={styles.componentsHeader}>
+          <Text variant="titleLarge" style={[styles.sectionTitle, { color: colors.onBackground }]}>
+            Components
+          </Text>
+          <Button
+            mode="contained"
+            compact
+            style={{ borderRadius: 20 }}
+            onPress={() => {
+              if (activeVehicle) {
+                selectVehicle(activeVehicle);
+                navigation.navigate('AddComponent');
+              }
+            }}
+          >
+            + Tambah
+          </Button>
+        </View>
+
+        {enrichedComponents.length > 0 ? (
+          <View style={styles.gridContainer}>
+            {enrichedComponents.map((comp) => (
+              <View key={comp.id} style={styles.gridItem}>
+                <ComponentCard component={comp} onPress={() => handleComponentAction(comp)} />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={[styles.emptyComponentCard, { backgroundColor: isDark ? colors.surfaceElevated : colors.surface }]}>
+            <MaterialCommunityIcons name="toy-brick-outline" size={40} color={colors.onSurfaceVariant} />
+            <Text style={[styles.emptyComponentText, { color: colors.onSurfaceVariant }]}>
+              Belum ada komponen servis yang dilacak.
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {vehicles.length > 0 ? (
+          <>
+            {renderBlueHero()}
+            {renderComponentsGrid()}
+          </>
+        ) : (
+          <>
+            {/* Tetap tampilkan padding top saat empty */}
+            <View style={{ height: insets.top }} />
+            {renderEmptyState()}
+          </>
+        )}
       </ScrollView>
 
-      <FAB.Group
-        visible={true}
-        open={fabOpen}
-        icon={fabOpen ? 'close' : 'plus'}
-        backdropColor="transparent"
-        actions={[
-          {
-            icon: 'speedometer',
-            label: 'Perbarui Odometer',
-            onPress: handleUpdateOdometer,
-            color: Colors.black,
-            style: [styles.actionButton, { backgroundColor: Colors.primaryLight }],
-            labelStyle: { 
-              backgroundColor: Colors.primaryLight, 
-              color: Colors.black,
-              paddingVertical: 6,
-              paddingHorizontal: 12,
-              borderRadius: 20,
-              fontFamily: 'Poppins_600SemiBold',
-              fontSize: 13,
-            },
-          },
-          {
-            icon: 'bell-alert',
-            label: 'Tambah Pengingat',
-            onPress: handleAddReminder,
-            color: Colors.white,
-            style: [styles.actionButton, { backgroundColor: Colors.primaryDark }],
-            labelStyle: { 
-              backgroundColor: Colors.primaryDark, 
-              color: Colors.white,
-              paddingVertical: 6,
-              paddingHorizontal: 12,
-              borderRadius: 20,
-              fontFamily: 'Poppins_600SemiBold',
-              fontSize: 13,
-            },
-          },
-          {
-            icon: 'wrench',
-            label: 'Tambah Servis',
-            onPress: handleAddService,
-            color: Colors.white,
-            style: [styles.actionButton, { backgroundColor: Colors.warning }],
-            labelStyle: { 
-              backgroundColor: Colors.warning, 
-              color: Colors.white,
-              paddingVertical: 6,
-              paddingHorizontal: 12,
-              borderRadius: 20,
-              fontFamily: 'Poppins_600SemiBold',
-              fontSize: 13,
-            },
-          },
-          {
-            icon: 'car',
-            label: 'Tambah Kendaraan',
-            onPress: handleAddVehicle,
-            color: Colors.white,
-            style: [styles.actionButton, { backgroundColor: Colors.primary }],
-            labelStyle: { 
-              backgroundColor: Colors.primary, 
-              color: Colors.white,
-              paddingVertical: 6,
-              paddingHorizontal: 12,
-              borderRadius: 20,
-              fontFamily: 'Poppins_600SemiBold',
-              fontSize: 13,
-            },
-          },
-        ]}
-        onStateChange={({ open }) => setFabOpen(open)}
-        onPress={() => {
-          if (fabOpen) {
-            setFabOpen(false);
-          }
-        }}
-        style={[styles.fab, { bottom: insets.bottom + Spacing.lg }]}
-        color={Colors.primary}
-      />
+      <Portal>
+        <Modal
+          visible={!!selectedComponentAction}
+          onDismiss={() => setSelectedComponentAction(null)}
+          contentContainerStyle={[styles.actionModal, { backgroundColor: colors.background }]}
+        >
+          <View style={styles.actionModalHeader}>
+            <MaterialCommunityIcons
+              name={(selectedComponentAction?.icon as any) ?? 'cog'}
+              size={32}
+              color={colors.onBackground}
+            />
+            <Text variant="titleLarge" style={[styles.actionModalTitle, { color: colors.onBackground }]}>
+              {selectedComponentAction?.name}
+            </Text>
+          </View>
+          <Text variant="bodyMedium" style={[styles.actionModalDesc, { color: colors.onSurfaceVariant }]}>
+            Apa yang ingin Anda lakukan dengan komponen ini?
+          </Text>
+          <Button
+            mode="contained"
+            onPress={handleMarkComponentServiced}
+            style={[styles.actionModalBtn, { backgroundColor: Colors.success }]}
+            icon="check-circle"
+          >
+            Tandai Selesai Diservis
+          </Button>
+          <Button
+            mode="outlined"
+            onPress={handleDeleteComponent}
+            style={[styles.actionModalBtn, { borderColor: Colors.error }]}
+            textColor={Colors.error}
+            icon="trash-can"
+          >
+            Hapus Komponen
+          </Button>
+        </Modal>
+      </Portal>
+
+      {vehicles.length > 0 && (
+        <FAB
+          icon="plus"
+          style={[styles.fab, { bottom: insets.bottom + Spacing.lg }]}
+          color={Colors.white}
+          onPress={handleAddVehicle}
+        />
+      )}
 
       <Snackbar visible={Boolean(error)} onDismiss={clearError} duration={3000}>
         {error}
       </Snackbar>
-      <Snackbar
-        visible={Boolean(successMessage)}
-        onDismiss={clearSuccessMessage}
-        duration={2800}
-      >
+      <Snackbar visible={Boolean(successMessage)} onDismiss={clearSuccessMessage} duration={2800}>
         {successMessage}
-      </Snackbar>
-      <Snackbar
-        visible={Boolean(reminderSnackbar)}
-        onDismiss={() => setReminderSnackbar('')}
-        duration={2800}
-      >
-        {reminderSnackbar}
       </Snackbar>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
+  container: { flex: 1 },
+  scrollContent: { paddingBottom: 120 },
+
+  // ── Blue Hero ──────────────────────────────────────────────────────────
+  blueHero: {
+    backgroundColor: '#185FA5',
     paddingHorizontal: Spacing.lg,
-    paddingBottom: 120,
-  },
-  list: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: 100,
-  },
-  listEmpty: {
-    flex: 1,
-  },
-  header: {
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.md,
+    paddingBottom: Spacing.xl,
+    overflow: 'hidden',
+    // Rounded bottom corners only
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     gap: Spacing.md,
   },
-  hero: {
-    borderRadius: 28,
-    padding: Spacing.lg,
+  heroDeco1: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    top: -50,
+    right: -40,
   },
-  eyebrow: {
-    fontFamily: 'Poppins_600SemiBold',
-    color: Colors.primary,
-    marginBottom: 2,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+  heroDeco2: {
+    position: 'absolute',
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    bottom: 10,
+    left: -20,
   },
-  greeting: {
-    fontFamily: 'Poppins_700Bold',
-    marginBottom: 4,
-  },
-  subGreeting: {
-    fontFamily: 'Poppins_400Regular',
-    lineHeight: 22,
-  },
-  summaryRow: {
+
+  // ── Header ────────────────────────────────────────────────────────────
+  appHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: Spacing.md,
-    gap: Spacing.xs,
+    paddingTop: Spacing.xs,
   },
-  summaryBadge: {
-    flex: 1,
+  vehicleSelectorBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  vehicleSelectorText: {
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 18,
+    color: '#fff',
+  },
+  settingsBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: BorderRadius.full,
-    borderWidth: 2,
-    paddingVertical: 6,
-    paddingHorizontal: Spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
-  summaryBadgeValue: {
-    fontFamily: 'Poppins_700Bold',
-  },
-  summaryBadgeLabel: {
-    fontFamily: 'Poppins_500Medium',
-    marginTop: 2,
-  },
-  sectionContainer: {
-    marginBottom: Spacing.lg,
+
+  // ── Odometer ──────────────────────────────────────────────────────────
+  odometerSection: {
     gap: Spacing.sm,
   },
-  sectionHeader: {
+  badgeRow: {
     flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  pillBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.full,
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  badgeText: {
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.85)',
+  },
+  odometerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 20,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
   },
-  sectionTitle: {
-    fontFamily: 'Poppins_600SemiBold',
-  },
-  linkText: {
-    fontFamily: 'Poppins_500Medium',
-    fontSize: 13,
-  },
-  reminderDetailCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    gap: Spacing.sm,
-  },
-  reminderHeader: {
+  odometerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.sm,
+    gap: Spacing.md,
   },
-  reminderServiceType: {
+  odometerValue: {
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 28,
+    color: '#fff',
+  },
+  odometerUnit: {
     fontFamily: 'Poppins_600SemiBold',
-    flex: 1,
+    fontSize: 18,
+    color: 'rgba(255,255,255,0.7)',
   },
-  reminderVehicle: {
-    flexDirection: 'row',
+  odoSettingsBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    justifyContent: 'center',
+    backgroundColor: '#fff',
   },
-  reminderVehicleInfo: {
-    fontFamily: 'Poppins_500Medium',
-  },
-  reminderItem: {
-    marginBottom: Spacing.md,
-    gap: 4,
-  },
-  reminderLabel: {
-    marginBottom: Spacing.xs,
-  },
-  reminderProgressBar: {
-    height: 6,
-    borderRadius: BorderRadius.full,
+
+  // ── Status Banner ─────────────────────────────────────────────────────
+  statusBanner: {
+    borderRadius: 16,
+    paddingTop: 10,
     overflow: 'hidden',
   },
-  reminderProgressFill: {
-    height: '100%',
-    borderRadius: BorderRadius.full,
+  statusBannerTitle: {
+    fontFamily: 'Poppins_700Bold',
+    textAlign: 'center',
+    fontSize: 11,
+    letterSpacing: 1,
+    color: '#fff',
+    marginBottom: 6,
   },
-  featuredCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
+  statusBannerInner: {
+    backgroundColor: Colors.white,
+    marginHorizontal: 2,
+    marginBottom: 2,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
   },
-  cardContent: {
-    flex: 1,
-    gap: 2,
-  },
-  cardLabel: {
-    fontFamily: 'Poppins_500Medium',
-  },
-  cardValue: {
+  statusBannerDesc: {
     fontFamily: 'Poppins_600SemiBold',
+    fontSize: 13,
+    color: Colors.black,
   },
-  cardInfo: {
-    fontFamily: 'Poppins_400Regular',
+
+  // ── Components ────────────────────────────────────────────────────────
+  componentsSection: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
   },
-  emptyCard: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
+  componentsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  sectionTitle: {
+    fontFamily: 'Poppins_700Bold',
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -Spacing.xs,
+  },
+  gridItem: {
+    width: '50%',
+    padding: Spacing.xs,
+  },
+  emptyComponentCard: {
+    borderRadius: 20,
+    padding: Spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 100,
+    gap: Spacing.md,
   },
-  emptyText: {
-    fontFamily: 'Poppins_600SemiBold',
-    marginBottom: Spacing.xs,
+  emptyComponentText: {
+    fontFamily: 'Poppins_500Medium',
+    textAlign: 'center',
   },
-  emptySubtext: {
+
+  // ── Empty State ───────────────────────────────────────────────────────
+  emptyContainer: {
+    flex: 1,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyIconBox: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.xl,
+  },
+  emptyTitle: {
+    fontFamily: 'Poppins_700Bold',
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  emptyDesc: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: Spacing.xl,
+    lineHeight: 22,
   },
-  separator: {
-    height: Spacing.md,
+  emptyButton: {
+    borderRadius: BorderRadius.full,
+    width: '100%',
   },
-  actionButton: {
-    elevation: 1,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    marginVertical: -2,
-    height: 40,
-    width: 40,
+  emptyButtonContent: { paddingVertical: 8 },
+  emptyButtonLabel: {
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 16,
   },
+
+  // ── Modal ─────────────────────────────────────────────────────────────
+  actionModal: {
+    margin: Spacing.xl,
+    padding: Spacing.xl,
+    borderRadius: 24,
+    alignItems: 'center',
+  },
+  actionModalHeader: {
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  actionModalTitle: {
+    fontFamily: 'Poppins_700Bold',
+    marginTop: Spacing.xs,
+  },
+  actionModalDesc: {
+    fontFamily: 'Poppins_400Regular',
+    textAlign: 'center',
+    marginBottom: Spacing.xl,
+  },
+  actionModalBtn: {
+    width: '100%',
+    marginBottom: Spacing.sm,
+    borderRadius: BorderRadius.full,
+  },
+
+  // ── FAB ───────────────────────────────────────────────────────────────
   fab: {
     position: 'absolute',
     right: Spacing.lg,
     borderRadius: BorderRadius.full,
-  },
-  vehicleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.sm,
-  },
-  vehicleIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-  },
-  vehicleTextContent: {
-    flex: 1,
-  },
-  vehicleNameSimple: {
-    fontFamily: 'Poppins_600SemiBold',
-  },
-  vehicleKmSimple: {
-    fontFamily: 'Poppins_400Regular',
+    backgroundColor: Colors.primary,
   },
 });

@@ -1,4 +1,4 @@
-import { Vehicle, ServiceStatus } from '@domain/types/vehicle.types';
+import { Vehicle, ServiceStatus, VehicleComponent } from '@domain/types/vehicle.types';
 import {
   SERVICE_THRESHOLD,
 } from '@core/constants/app.constants';
@@ -145,4 +145,26 @@ export function calculateNextServiceDate(
   const date = new Date();
   date.setDate(date.getDate() + estimatedDays);
   return date;
+}
+
+/**
+ * Enrich component dengan computed fields (remainingKm, estimatedDays)
+ */
+export function enrichComponent(
+  component: VehicleComponent,
+  projectedCurrentKm: number,
+  dailyEst: number
+): VehicleComponent {
+  const remainingKm = calculateRemainingKm(
+    projectedCurrentKm,
+    component.lastServiceKm,
+    component.targetInterval,
+  );
+  const estimatedDays = calculateEstimatedDays(remainingKm, dailyEst);
+
+  return {
+    ...component,
+    remainingKm,
+    estimatedDays,
+  };
 }

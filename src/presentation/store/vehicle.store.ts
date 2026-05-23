@@ -108,7 +108,7 @@ export const useVehicleStore = create<VehicleStore>((set, get) => ({
       const createdLog = await ServiceLogService.createServiceLog({
         vehicleId: projectedVehicle.id,
         serviceDate,
-        serviceKm: projectedVehicle.projectedCurrentKm ?? projectedVehicle.currentKm,
+        serviceKm: Math.round(projectedVehicle.projectedCurrentKm ?? projectedVehicle.currentKm),
         notes: `Servis diselesaikan: ${projectedVehicle.serviceType}`,
       });
 

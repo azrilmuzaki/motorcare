@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, Alert } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { HelperText, Menu, Snackbar, Text, TextInput } from 'react-native-paper';
@@ -37,7 +37,7 @@ export function UpdateOdometerScreen({ navigation, route }: UpdateOdometerScreen
       const vehicle = vehicles.find((item) => item.id === route.params.vehicleId);
       if (vehicle) {
         setValue('vehicleId', vehicle.id);
-        setValue('currentKm', vehicle.projectedCurrentKm ?? vehicle.currentKm);
+        setValue('currentKm', Math.round(vehicle.projectedCurrentKm ?? vehicle.currentKm));
       }
     }
   }, [route.params?.vehicleId, vehicles, setValue]);
@@ -47,7 +47,7 @@ export function UpdateOdometerScreen({ navigation, route }: UpdateOdometerScreen
       const vehicle = vehicles.find((item) => item.id === vehicleId);
       if (vehicle) {
         setValue('vehicleId', vehicleId);
-        setValue('currentKm', vehicle.projectedCurrentKm ?? vehicle.currentKm);
+        setValue('currentKm', Math.round(vehicle.projectedCurrentKm ?? vehicle.currentKm));
       }
       setMenuVisible(false);
     },
@@ -60,14 +60,33 @@ export function UpdateOdometerScreen({ navigation, route }: UpdateOdometerScreen
         return;
       }
 
+      const vehicle = vehicles.find((v) => v.id === data.vehicleId);
+      const prevKm = vehicle ? Math.round(vehicle.projectedCurrentKm ?? vehicle.currentKm) : 0;
+      const roundedKm = Math.round(data.currentKm);
+
+      if (roundedKm < prevKm) {
+        Alert.alert(
+          'Kilometer Tidak Valid',
+          `Kilometer baru tidak boleh lebih kecil dari kilometer saat ini (${prevKm.toLocaleString()} km).`
+        );
+        return;
+      }
+
       try {
-        const updatedVehicle = await updateVehicle(data.vehicleId, { currentKm: data.currentKm });
-        await requestPermission();
-        await scheduleServiceReminder(updatedVehicle);
+        const updatedVehicle = await updateVehicle(data.vehicleId, { currentKm: roundedKm });
+        
+        try {
+          await requestPermission();
+          await scheduleServiceReminder(updatedVehicle);
+        } catch (notifError) {
+          console.warn('Failed to schedule notification:', notifError);
+        }
+
         setSnackbar('Odometer berhasil diperbarui.');
         navigation.goBack();
-      } catch {
-        setSnackbar('Gagal memperbarui odometer.');
+      } catch (err: any) {
+        console.error(err);
+        setSnackbar(`Gagal memperbarui odometer: ${err?.message || 'Terjadi kesalahan'}`);
       }
     },
     [navigation, requestPermission, scheduleServiceReminder, updateVehicle, vehicles],

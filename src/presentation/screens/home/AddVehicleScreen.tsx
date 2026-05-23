@@ -1,6 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
-  Pressable,
   StyleSheet,
   View,
 } from 'react-native';
@@ -9,23 +8,19 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
-  HelperText,
-  Menu,
   SegmentedButtons,
   Snackbar,
   Text,
-  TextInput,
 } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 
 import {
   DEFAULT_DAILY_EST,
   DEFAULT_TARGET_INTERVAL,
-  SERVICE_TYPE_OPTIONS,
 } from '@core/constants/app.constants';
 import { Colors } from '@core/theme/colors';
 import { Spacing } from '@core/theme/typography';
-import { translateServiceType, translateVehicleType } from '@core/utils/i18n.utils';
+import { translateVehicleType } from '@core/utils/i18n.utils';
 import { CreateVehicleInput, VehicleType } from '@domain/types/vehicle.types';
 import { AppButton } from '@presentation/components/common/AppButton';
 import { AppCard } from '@presentation/components/common/AppCard';
@@ -35,17 +30,15 @@ import { AddVehicleScreenProps } from '@presentation/navigation/types';
 import { useAuthStore } from '@presentation/store/auth.store';
 import { useVehicleStore } from '@presentation/store/vehicle.store';
 
-type FormData = CreateVehicleInput;
-type ServiceTypeOption = (typeof SERVICE_TYPE_OPTIONS)[number];
+// We omit the legacy fields from our local form data so user doesn't see them
+type FormData = Omit<CreateVehicleInput, 'serviceType' | 'targetInterval'>;
 
 export function AddVehicleScreen({ navigation }: AddVehicleScreenProps) {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
   const { addVehicle, isLoading, error, clearError } = useVehicleStore();
   const { user } = useAuthStore();
-  const [selectedServiceType, setSelectedServiceType] = useState<ServiceTypeOption | ''>('');
-  const [customServiceType, setCustomServiceType] = useState('');
-  const [serviceTypeMenuVisible, setServiceTypeMenuVisible] = useState(false);
+  
   const schema = useMemo(
     () =>
       yup.object({
@@ -54,19 +47,10 @@ export function AddVehicleScreen({ navigation }: AddVehicleScreenProps) {
           .mixed<VehicleType>()
           .oneOf(['car', 'motorcycle', 'truck'])
           .required(t('addVehicle.validation.typeRequired')),
-        serviceType: yup
-          .string()
-          .trim()
-          .required(t('addVehicle.validation.serviceTypeRequired')),
         currentKm: yup
           .number()
           .min(0)
           .required(t('addVehicle.validation.currentKmRequired'))
-          .typeError(t('addVehicle.validation.number')),
-        targetInterval: yup
-          .number()
-          .min(500)
-          .required(t('addVehicle.validation.targetIntervalRequired'))
           .typeError(t('addVehicle.validation.number')),
         dailyEst: yup
           .number()
@@ -80,57 +64,16 @@ export function AddVehicleScreen({ navigation }: AddVehicleScreenProps) {
   const {
     control,
     handleSubmit,
-    setValue,
     formState: { errors },
-    watch,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
     defaultValues: {
       name: '',
       type: 'car',
-      serviceType: '',
       currentKm: 0,
-      targetInterval: DEFAULT_TARGET_INTERVAL,
       dailyEst: DEFAULT_DAILY_EST,
     },
   });
-
-  const dailyEst = watch('dailyEst');
-  const targetInterval = watch('targetInterval');
-
-  const handleSelectServiceType = useCallback((option: ServiceTypeOption) => {
-    setSelectedServiceType(option);
-    setServiceTypeMenuVisible(false);
-
-    if (option === 'Lainnya') {
-      setValue('serviceType', customServiceType.trim(), {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-      return;
-    }
-
-    setCustomServiceType('');
-    setValue('serviceType', option, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  }, [customServiceType, setValue]);
-
-  const handleCustomServiceTypeChange = useCallback((text: string) => {
-    setCustomServiceType(text);
-    setValue('serviceType', text.trim(), {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  }, [setValue]);
-
-  const selectedServiceTypeLabel =
-    selectedServiceType === 'Lainnya'
-      ? customServiceType || t('vehicle.serviceTypes.other')
-      : selectedServiceType
-        ? translateServiceType(t, selectedServiceType)
-        : '';
 
   const onSubmit = useCallback(
     async (data: FormData) => {
@@ -139,7 +82,14 @@ export function AddVehicleScreen({ navigation }: AddVehicleScreenProps) {
       }
 
       try {
-        await addVehicle(user.id, data as CreateVehicleInput);
+        // Inject legacy dummy values to satisfy the schema/database
+        const payload: CreateVehicleInput = {
+          ...data,
+          serviceType: 'routine',
+          targetInterval: DEFAULT_TARGET_INTERVAL,
+        };
+
+        await addVehicle(user.id, payload);
         navigation.goBack();
       } catch {
         // Error handled in store
@@ -212,87 +162,6 @@ export function AddVehicleScreen({ navigation }: AddVehicleScreenProps) {
 
         <Controller
           control={control}
-          name="serviceType"
-          render={({ field: { onBlur } }) => (
-            <View style={styles.fieldGroup}>
-              <Menu
-                visible={serviceTypeMenuVisible}
-                onDismiss={() => setServiceTypeMenuVisible(false)}
-                anchor={
-                  <Pressable onPress={() => setServiceTypeMenuVisible(true)}>
-                    <View pointerEvents="none">
-                      <TextInput
-                        textColor={colors.onSurface}
-                        placeholderTextColor={colors.onSurfaceVariant}
-                        label={t('addVehicle.fields.serviceTypeLabel')}
-                        value={selectedServiceTypeLabel}
-                        placeholder={t('addVehicle.fields.serviceTypePlaceholder')}
-                        mode="outlined"
-                        editable={false}
-                        error={Boolean(errors.serviceType)}
-                        cursorColor={Colors.primary}
-                        selectionColor={Colors.primary}
-                        activeOutlineColor={Colors.primary}
-                        outlineColor={colors.outline}
-                        style={[
-                          styles.dropdownInput,
-                          {
-                            backgroundColor: isDark ? colors.surfaceElevated : colors.surface,
-                          },
-                        ]}
-                        outlineStyle={styles.dropdownOutline}
-                        contentStyle={styles.dropdownContent}
-                        left={<TextInput.Icon icon="wrench-outline" />}
-                        right={
-                          <TextInput.Icon
-                            icon={serviceTypeMenuVisible ? 'menu-up' : 'menu-down'}
-                          />
-                        }
-                      />
-                    </View>
-                  </Pressable>
-                }
-                contentStyle={[
-                  styles.menuContent,
-                  {
-                    backgroundColor: isDark ? colors.surfaceElevated : colors.surface,
-                  },
-                ]}
-              >
-                {SERVICE_TYPE_OPTIONS.map(option => (
-                  <Menu.Item
-                    key={option}
-                    title={translateServiceType(t, option)}
-                    onPress={() => handleSelectServiceType(option)}
-                    leadingIcon={selectedServiceType === option ? 'check' : 'wrench-outline'}
-                    titleStyle={styles.menuItemTitle}
-                  />
-                ))}
-              </Menu>
-
-              {selectedServiceType === 'Lainnya' ? (
-                <AppInput
-                  label={t('addVehicle.fields.customServiceTypeLabel')}
-                  value={customServiceType}
-                  onChangeText={handleCustomServiceTypeChange}
-                  onBlur={onBlur}
-                  error={errors.serviceType?.message}
-                  placeholder={t('addVehicle.fields.customServiceTypePlaceholder')}
-                  left={<TextInput.Icon icon="pencil-outline" />}
-                />
-              ) : null}
-
-              {errors.serviceType && selectedServiceType !== 'Lainnya' ? (
-                <HelperText type="error" visible>
-                  {errors.serviceType.message}
-                </HelperText>
-              ) : null}
-            </View>
-          )}
-        />
-
-        <Controller
-          control={control}
           name="currentKm"
           render={({ field: { onChange, onBlur, value } }) => (
             <AppInput
@@ -303,22 +172,6 @@ export function AddVehicleScreen({ navigation }: AddVehicleScreenProps) {
               error={errors.currentKm?.message}
               keyboardType="numeric"
               placeholder={t('addVehicle.fields.currentKmPlaceholder')}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="targetInterval"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <AppInput
-              label={t('addVehicle.fields.targetIntervalLabel')}
-              value={String(value)}
-              onChangeText={text => onChange(Number(text) || 0)}
-              onBlur={onBlur}
-              error={errors.targetInterval?.message}
-              keyboardType="numeric"
-              placeholder={t('addVehicle.fields.targetIntervalPlaceholder')}
             />
           )}
         />
@@ -338,27 +191,6 @@ export function AddVehicleScreen({ navigation }: AddVehicleScreenProps) {
             />
           )}
         />
-
-        {dailyEst > 0 && targetInterval > 0 ? (
-          <View
-            style={[
-              styles.preview,
-              {
-                backgroundColor: isDark ? colors.surfaceElevated : Colors.primaryLight,
-              },
-            ]}
-          >
-            <Text
-              variant="bodySmall"
-              style={[
-                styles.previewText,
-                { color: isDark ? colors.onSurfaceVariant : Colors.primaryDark },
-              ]}
-            >
-              {t('addVehicle.preview', { count: Math.ceil(targetInterval / dailyEst) })}
-            </Text>
-          </View>
-        ) : null}
 
         <View style={styles.buttonGroup}>
           <AppButton
@@ -406,20 +238,6 @@ const styles = StyleSheet.create({
   fieldGroup: {
     gap: Spacing.sm,
   },
-  dropdownInput: {},
-  dropdownOutline: {
-    borderRadius: 12,
-  },
-  dropdownContent: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
-  },
-  menuContent: {
-    borderRadius: 16,
-  },
-  menuItemTitle: {
-    fontFamily: 'Poppins_500Medium',
-  },
   fieldLabel: {
     fontFamily: 'Poppins_500Medium',
     opacity: 0.7,
@@ -428,17 +246,6 @@ const styles = StyleSheet.create({
     color: Colors.error,
     fontSize: 12,
     fontFamily: 'Poppins_400Regular',
-  },
-  preview: {
-    borderRadius: 12,
-    padding: Spacing.md,
-  },
-  previewText: {
-    fontFamily: 'Poppins_400Regular',
-  },
-  previewHighlight: {
-    fontFamily: 'Poppins_700Bold',
-    color: Colors.primary,
   },
   buttonGroup: {
     gap: Spacing.sm,

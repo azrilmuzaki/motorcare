@@ -133,7 +133,7 @@ const barStyles = StyleSheet.create({
 
 /** Line/trend chart using react-native-svg */
 function LineChart({ data }: { data: { label: string; value: number }[] }) {
-  const W = Dimensions.get('window').width - 32 - 32; // card padding
+  const W = Dimensions.get('window').width - 32 - 32;
   const H = 100;
   const PAD = 12;
   const maxVal = Math.max(...data.map((d) => d.value), 1);
@@ -286,14 +286,13 @@ export function AnalyticsScreen() {
   const topService = typeData[0]?.label ?? 'Belum ada data';
   const topCount = typeData[0]?.value ?? 0;
 
-  // Monthly growth (compared to previous month)
   const lastTwo = monthlyData.slice(-2);
   const growthThisMonth =
     lastTwo.length === 2 ? lastTwo[1].value - lastTwo[0].value : 0;
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + Spacing.xxxl }]}
       refreshControl={
         <RefreshControl
@@ -305,45 +304,44 @@ export function AnalyticsScreen() {
       }
       showsVerticalScrollIndicator={false}
     >
-      {/* ── Hero ── */}
-      <View style={styles.hero}>
+      {/* ── Hero full-width dengan curved bottom ── */}
+      <View style={[styles.hero, { paddingTop: insets.top + Spacing.lg }]}>
         <View style={styles.heroDeco1} />
         <View style={styles.heroDeco2} />
-        <View style={styles.heroBadge}>
+        {/* <View style={styles.heroBadge}>
           <Text style={styles.heroBadgeText}>📊  Statistik Servis</Text>
-        </View>
+        </View> */}
         <Text style={styles.heroTitle}>Grafik perawatan{'\n'}kendaraan Anda</Text>
         <Text style={styles.heroSub}>
           Pantau riwayat servis dan jenis perawatan yang paling sering dilakukan.
         </Text>
-      </View>
 
-      {/* ── Stat Cards ── */}
-      <View style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.onSurfaceVariant }]}>Total servis</Text>
-          <Text style={[styles.statValue, { color: colors.onBackground }]}>{totalServices}</Text>
-          {growthThisMonth !== 0 && (
-            <View style={styles.growthBadge}>
-              <Text style={styles.growthBadgeText}>
-                {growthThisMonth > 0 ? '+' : ''}{growthThisMonth} bulan ini
-              </Text>
-            </View>
-          )}
-        </View>
-        <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.statLabel, { color: colors.onSurfaceVariant }]}>Servis terpopuler</Text>
-          <Text style={[styles.statValueSm, { color: colors.onBackground }]} numberOfLines={1}>
-            {topService}
-          </Text>
-          <Text style={[styles.statSub, { color: colors.onSurfaceVariant }]}>
-            {topCount} dari {totalServices} servis
-          </Text>
+        {/* Stats box di dalam hero */}
+        <View style={styles.heroStatsBox}>
+          <View style={styles.heroStatItem}>
+            <Text style={styles.heroStatLabel}>Total servis</Text>
+            <Text style={styles.heroStatValue}>{totalServices}</Text>
+            {growthThisMonth !== 0 && (
+              <View style={styles.growthBadge}>
+                <Text style={styles.growthBadgeText}>
+                  {growthThisMonth > 0 ? '+' : ''}{growthThisMonth} bulan ini
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.heroStatDivider} />
+
+          <View style={styles.heroStatItem}>
+            <Text style={styles.heroStatLabel}>Servis terpopuler</Text>
+            <Text style={styles.heroStatValueSm} numberOfLines={1}>{topService}</Text>
+            <Text style={styles.heroStatSub}>{topCount} dari {totalServices} servis</Text>
+          </View>
         </View>
       </View>
 
       {/* ── Monthly Chart ── */}
-      <AppCard style={[styles.card, { backgroundColor: colors.surface }]}>
+      <AppCard style={[styles.card, { backgroundColor: colors.surface, marginHorizontal: Spacing.lg }]}>
         <View style={styles.cardHeader}>
           <View>
             <Text style={[styles.cardTitle, { color: colors.onBackground }]}>Servis per bulan</Text>
@@ -382,7 +380,7 @@ export function AnalyticsScreen() {
 
       {/* ── Type Distribution ── */}
       {typeData.length > 0 ? (
-        <AppCard style={[styles.card, { backgroundColor: colors.surface }]}>
+        <AppCard style={[styles.card, { backgroundColor: colors.surface, marginHorizontal: Spacing.lg }]}>
           <View style={styles.cardHeader}>
             <View>
               <Text style={[styles.cardTitle, { color: colors.onBackground }]}>Distribusi jenis servis</Text>
@@ -430,33 +428,36 @@ export function AnalyticsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { paddingHorizontal: Spacing.lg, gap: Spacing.lg },
+  content: { gap: Spacing.lg },
 
-  // Hero
+  // Hero — full width, curved bottom
   hero: {
     backgroundColor: '#185FA5',
-    borderRadius: 20,
-    padding: Spacing.xl,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.xl,
     overflow: 'hidden',
     gap: Spacing.sm,
+    marginBottom: Spacing.sm,
   },
   heroDeco1: {
     position: 'absolute',
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
     backgroundColor: 'rgba(255,255,255,0.07)',
-    top: -35,
-    right: -25,
+    top: -50,
+    right: -40,
   },
   heroDeco2: {
     position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: 'rgba(255,255,255,0.05)',
-    bottom: -25,
-    right: 50,
+    bottom: -30,
+    right: 60,
   },
   heroBadge: {
     alignSelf: 'flex-start',
@@ -484,18 +485,46 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
 
-  // Stat Cards
-  statsRow: { flexDirection: 'row', gap: Spacing.md },
-  statCard: {
-    flex: 1,
-    borderRadius: BorderRadius.lg,
+  // Hero Stats Box
+  heroStatsBox: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.13)',
+    borderRadius: 16,
     padding: Spacing.md,
+    marginTop: Spacing.sm,
+    alignItems: 'center',
+  },
+  heroStatItem: {
+    flex: 1,
     gap: 4,
   },
-  statLabel: { fontSize: 11, fontFamily: 'Poppins_500Medium' },
-  statValue: { fontSize: 28, fontFamily: 'Poppins_700Bold' },
-  statValueSm: { fontSize: 15, fontFamily: 'Poppins_600SemiBold', marginTop: 4 },
-  statSub: { fontSize: 11, fontFamily: 'Poppins_400Regular' },
+  heroStatDivider: {
+    width: 1,
+    alignSelf: 'stretch',
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    marginHorizontal: Spacing.md,
+  },
+  heroStatLabel: {
+    fontSize: 11,
+    fontFamily: 'Poppins_500Medium',
+    color: 'rgba(255,255,255,0.7)',
+  },
+  heroStatValue: {
+    fontSize: 28,
+    fontFamily: 'Poppins_700Bold',
+    color: '#fff',
+  },
+  heroStatValueSm: {
+    fontSize: 15,
+    fontFamily: 'Poppins_600SemiBold',
+    color: '#fff',
+    marginTop: 4,
+  },
+  heroStatSub: {
+    fontSize: 11,
+    fontFamily: 'Poppins_400Regular',
+    color: 'rgba(255,255,255,0.7)',
+  },
   growthBadge: {
     alignSelf: 'flex-start',
     backgroundColor: '#EAF3DE',
