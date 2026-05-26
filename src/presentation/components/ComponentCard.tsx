@@ -18,8 +18,8 @@ interface Props {
 const STATUS_COLORS: Record<string, string> = {
   ok: Colors.success,
   warning: Colors.warning,
-  urgent: Colors.secondary,
-  overdue: Colors.error,
+  urgent: Colors.error,
+  overdue: '#7F1D1D',
 };
 
 export function ComponentCard({ component, onPress }: Props) {
@@ -31,9 +31,15 @@ export function ComponentCard({ component, onPress }: Props) {
   const status = getServiceStatus(remainingKm);
   const statusColor = STATUS_COLORS[status];
   
-  const isOk = status === 'ok' || status === 'warning';
-  const headerIcon = isOk ? 'check-circle' : 'alert-circle';
-  const headerIconColor = isOk ? Colors.success : statusColor;
+  const headerIcon =
+    status === 'ok'
+      ? 'check-circle'
+      : status === 'warning'
+      ? 'alert'
+      : status === 'urgent'
+      ? 'alert-circle'
+      : 'alert-octagon';
+  const headerIconColor = statusColor;
 
   // Format estimated date
   let estimatedDateStr = 'Est. -';
@@ -44,6 +50,11 @@ export function ComponentCard({ component, onPress }: Props) {
   } else if (component.estimatedDays !== undefined && component.estimatedDays <= 0) {
     estimatedDateStr = 'Perlu dicek';
   }
+
+  const kmLabel =
+    remainingKm <= 0
+      ? `Terlewat ${Math.abs(remainingKm).toLocaleString(locale)} km`
+      : `${remainingKm.toLocaleString(locale)} km lagi`;
 
   return (
     <Pressable 
@@ -76,8 +87,14 @@ export function ComponentCard({ component, onPress }: Props) {
 
       {/* Footer: Remaining KM & Date */}
       <View style={styles.footerInfo}>
-        <Text variant="titleSmall" style={[styles.kmText, { color: colors.onBackground }]}>
-          {Math.max(0, remainingKm).toLocaleString(locale)} km lagi
+        <Text 
+          variant="titleSmall" 
+          style={[
+            styles.kmText, 
+            { color: status === 'ok' ? colors.onBackground : statusColor }
+          ]}
+        >
+          {kmLabel}
         </Text>
         <Text variant="bodySmall" style={[styles.dateText, { color: colors.onSurfaceVariant }]}>
           {estimatedDateStr}

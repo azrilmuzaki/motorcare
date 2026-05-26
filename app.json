@@ -20,7 +20,14 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "notification": {
+        "icon": "./assets/notification-icon.png",
+        "color": "#FFFFFF"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "ios": {
       "bundleIdentifier": "com.garasisaya.app",
@@ -38,8 +45,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "337977f9-ef5b-4526-b967-598cbf26e2ae"
+        "projectId": "c49c586e-3079-4719-947b-a9ec4b4bdfb4"
       }
-    }
+    },
+    "owner": "garasisaya"
   }
 }

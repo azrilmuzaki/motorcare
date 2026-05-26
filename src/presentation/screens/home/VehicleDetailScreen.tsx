@@ -17,14 +17,15 @@ import type { RootStackParamList } from '@presentation/navigation/types';
 import { VEHICLE_TYPE_ICONS } from '@core/constants/app.constants';
 import { enrichComponent, getServiceStatus } from '@domain/logic/vehicle.logic';
 import type { VehicleComponent } from '@domain/types/vehicle.types';
+import { useNotification } from '@presentation/hooks/useNotification';
 
 type VehicleDetailScreenProps = NativeStackScreenProps<RootStackParamList, 'VehicleDetail'>;
 
 const STATUS_COLORS: Record<string, string> = {
   ok: Colors.success,
   warning: Colors.warning,
-  urgent: Colors.secondary,
-  overdue: Colors.error,
+  urgent: Colors.error,
+  overdue: '#7F1D1D',
 };
 
 export function VehicleDetailScreen({ route, navigation }: VehicleDetailScreenProps) {
@@ -34,6 +35,7 @@ export function VehicleDetailScreen({ route, navigation }: VehicleDetailScreenPr
   const { vehicles, deleteVehicle, isLoading } = useVehicles();
   const { components, loadComponents } = useComponentStore();
   const { vehicleId } = route.params;
+  const { checkAndTriggerMaintenanceNotifications } = useNotification();
 
   const [selectedComponentAction, setSelectedComponentAction] = useState<VehicleComponent | null>(null);
 
@@ -59,6 +61,12 @@ export function VehicleDetailScreen({ route, navigation }: VehicleDetailScreenPr
     return components.map((c) => enrichComponent(c, projectedCurrentKm, vehicle.dailyEst));
   }, [components, vehicle, projectedCurrentKm]);
 
+  useEffect(() => {
+    if (vehicle && enrichedComponents.length > 0) {
+      void checkAndTriggerMaintenanceNotifications(vehicle.name, enrichedComponents);
+    }
+  }, [vehicle?.id, vehicle?.name, enrichedComponents, checkAndTriggerMaintenanceNotifications]);
+
   // Overall Health Status based on worst component status
   const overallHealth = useMemo(() => {
     if (enrichedComponents.length === 0) {
@@ -74,15 +82,25 @@ export function VehicleDetailScreen({ route, navigation }: VehicleDetailScreenPr
     let worstStatus = 'ok';
     for (const comp of enrichedComponents) {
       const compStatus = getServiceStatus(comp.remainingKm ?? 0);
-      if (compStatus === 'overdue' || compStatus === 'urgent') {
-        worstStatus = 'urgent';
+      if (compStatus === 'overdue') {
+        worstStatus = 'overdue';
         break;
-      } else if (compStatus === 'warning') {
+      } else if (compStatus === 'urgent') {
+        worstStatus = 'urgent';
+      } else if (compStatus === 'warning' && worstStatus === 'ok') {
         worstStatus = 'warning';
       }
     }
 
-    if (worstStatus === 'urgent') {
+    if (worstStatus === 'overdue') {
+      return {
+        status: 'overdue',
+        label: 'Jadwal Lewat',
+        color: '#7F1D1D',
+        desc: 'Motor Anda telah melewati jadwal servis!',
+        icon: 'alert-octagon' as any,
+      };
+    } else if (worstStatus === 'urgent') {
       return {
         status: 'urgent',
         label: 'Perlu Servis Segera',

@@ -1,17 +1,23 @@
 import { useCallback } from 'react';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
   NOTIFICATION_CHANNEL_ID,
   NOTIFICATION_CHANNEL_NAME,
   NOTIFICATION_DAYS_BEFORE,
 } from '@core/constants/notification.constants';
-import { calculateNextServiceDate } from '@domain/logic/vehicle.logic';
-import type { Vehicle } from '@domain/types/vehicle.types';
+import { calculateNextServiceDate, getServiceStatus } from '@domain/logic/vehicle.logic';
+import type { Vehicle, VehicleComponent } from '@domain/types/vehicle.types';
 import { useSettingsStore } from '@presentation/store/settings.store';
 
 let notificationHandlerConfigured = false;
 
 async function getNotificationsModule() {
+  if (Platform.OS === 'web') {
+    return null;
+  }
+
   const Notifications = await import('expo-notifications');
 
   if (!notificationHandlerConfigured) {
@@ -171,11 +177,113 @@ export function useNotification() {
     await Notifications.cancelAllScheduledNotificationsAsync();
   }, []);
 
+  const checkAndTriggerMaintenanceNotifications = useCallback(
+    async (vehicleName: string, enrichedComponents: VehicleComponent[]): Promise<void> => {
+      if (!notificationsEnabled) {
+        return;
+      }
+
+      const Notifications = await getNotificationsModule();
+      let channelReady = false;
+      if (Notifications) {
+        channelReady = await ensureAndroidChannel();
+      }
+
+      const nowMs = Date.now();
+
+      for (const comp of enrichedComponents) {
+        if (comp.remainingKm === undefined) {
+          continue;
+        }
+
+        const remainingKm = comp.remainingKm;
+        const status = getServiceStatus(remainingKm);
+
+        if (status === 'ok') {
+          // Jika status aman (ok), hapus riwayat cooldown lama
+          const keysToRemove = [
+            `@garasi_last_notified:${comp.id}:warning`,
+            `@garasi_last_notified:${comp.id}:urgent`,
+            `@garasi_last_notified:${comp.id}:overdue`,
+          ];
+          try {
+            await AsyncStorage.multiRemove(keysToRemove);
+          } catch (err) {
+            console.error('Failed to remove cooldown keys:', err);
+          }
+          continue;
+        }
+
+        // Check cooldown
+        const storageKey = `@garasi_last_notified:${comp.id}:${status}`;
+        let lastNotifiedTime = 0;
+        try {
+          const val = await AsyncStorage.getItem(storageKey);
+          if (val) {
+            lastNotifiedTime = new Date(val).getTime();
+          }
+        } catch (err) {
+          console.error('Failed to read last notified time:', err);
+        }
+
+        // Cooldown: warning 24h, overdue 24h, urgent 12h
+        let cooldownMs = 24 * 60 * 60 * 1000;
+        if (status === 'urgent') {
+          cooldownMs = 12 * 60 * 60 * 1000;
+        }
+
+        const isCooldownPassed = nowMs - lastNotifiedTime >= cooldownMs;
+
+        if (isCooldownPassed) {
+          let title = '';
+          let body = '';
+
+          if (status === 'warning') {
+            title = '⚠️ Peringatan Servis Komponen';
+            body = `Peringatan: ${comp.name} pada ${vehicleName} tinggal ${remainingKm.toLocaleString('id-ID')} km lagi menuju servis.`;
+          } else if (status === 'urgent') {
+            title = '🚨 Perhatian: Segera Servis!';
+            body = `Perhatian: Servis ${comp.name} pada ${vehicleName} sudah sangat dekat, sisa ${remainingKm.toLocaleString('id-ID')} km lagi!`;
+          } else if (status === 'overdue') {
+            title = '⚫ Jadwal Servis Terlewat!';
+            const overdueKm = Math.abs(remainingKm);
+            body = `Terlambat: ${comp.name} pada ${vehicleName} telah melewati jadwal servis sebanyak ${overdueKm.toLocaleString('id-ID')} km!`;
+          }
+
+          if (Notifications && channelReady) {
+            try {
+              await Notifications.scheduleNotificationAsync({
+                content: {
+                  title,
+                  body,
+                  data: { componentId: comp.id, vehicleId: comp.vehicleId, status },
+                  sound: 'default',
+                },
+                trigger: null,
+              });
+            } catch (err) {
+              console.error('Failed to schedule local notification:', err);
+            }
+          }
+
+          try {
+            await AsyncStorage.setItem(storageKey, new Date(nowMs).toISOString());
+          } catch (err) {
+            console.error('Failed to set last notified time:', err);
+          }
+        }
+      }
+    },
+    [ensureAndroidChannel, notificationsEnabled]
+  );
+
   return {
     requestPermission,
     scheduleServiceReminder,
     scheduleReminder,
     cancelVehicleReminder,
     cancelAllReminders,
+    checkAndTriggerMaintenanceNotifications,
   };
 }
+

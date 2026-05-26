@@ -59,8 +59,9 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
 
   setLanguage: async (lang) => {
     const shouldUseRTL = isRtlLanguage(lang);
+    const directionChanged = I18nManager.isRTL !== shouldUseRTL;
 
-    if (I18nManager.isRTL !== shouldUseRTL) {
+    if (directionChanged) {
       I18nManager.allowRTL(shouldUseRTL);
       I18nManager.forceRTL(shouldUseRTL);
     }
@@ -72,6 +73,15 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
     }
     set({ language: lang });
     await AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);
+
+    if (directionChanged && Platform.OS !== 'web') {
+      try {
+        const Updates = await import('expo-updates');
+        await Updates.reloadAsync();
+      } catch (err) {
+        console.error('Failed to reload application:', err);
+      }
+    }
   },
 
   setThemeMode: async (mode) => {
@@ -114,7 +124,8 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
 
   loadLanguage: async () => {
     try {
-      const nextLanguage: Language = 'id';
+      const stored = await AsyncStorage.getItem(STORAGE_KEYS.LANGUAGE);
+      const nextLanguage: Language = (stored as Language) || 'id';
 
       const shouldUseRTL = isRtlLanguage(nextLanguage);
 
@@ -130,7 +141,6 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
       }
 
       set({ language: nextLanguage });
-      await AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, nextLanguage);
     } catch {
       set({ language: 'id' });
     }

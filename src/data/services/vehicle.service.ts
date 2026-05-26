@@ -46,7 +46,7 @@ function mapRowToVehicle(row: Record<string, unknown>): Vehicle {
   const referenceDate =
     typeof row.last_odometer_update_at === 'string'
       ? row.last_odometer_update_at
-      : (row.updated_at as string | undefined) ?? (row.created_at as string);
+      : (row.updated_at as string) || (row.created_at as string);
 
   return {
     id: row.id as string,

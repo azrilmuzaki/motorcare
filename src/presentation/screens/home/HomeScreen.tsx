@@ -25,6 +25,7 @@ import { useComponentStore } from '@presentation/store/component.store';
 import { useServiceLogStore } from '@presentation/store/serviceLog.store';
 import { enrichComponent, getServiceStatus } from '@domain/logic/vehicle.logic';
 import { ComponentCard } from '@presentation/components/ComponentCard';
+import { useNotification } from '@presentation/hooks/useNotification';
 
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -34,6 +35,7 @@ export function HomeScreen() {
 
   const { vehicles, error, successMessage, clearError, clearSuccessMessage, selectVehicle } = useVehicles();
   const { components, loadComponents } = useComponentStore();
+  const { checkAndTriggerMaintenanceNotifications } = useNotification();
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
@@ -67,6 +69,12 @@ export function HomeScreen() {
       activeVehicle.dailyEst
     ));
   }, [components, activeVehicle]);
+
+  useEffect(() => {
+    if (activeVehicle && enrichedComponents.length > 0) {
+      void checkAndTriggerMaintenanceNotifications(activeVehicle.name, enrichedComponents);
+    }
+  }, [activeVehicle?.id, activeVehicle?.name, enrichedComponents, checkAndTriggerMaintenanceNotifications]);
 
   const overallStatus = useMemo(() => {
     if (enrichedComponents.length === 0) return 'ok';
@@ -163,7 +171,12 @@ export function HomeScreen() {
     let bannerTitle = 'SANGAT BAIK';
     let bannerDesc = 'Semua komponen aman';
     let bannerIcon: any = 'check-circle';
-    if (overallStatus === 'overdue' || overallStatus === 'urgent') {
+    if (overallStatus === 'overdue') {
+      bannerBg = '#7F1D1D';
+      bannerTitle = 'JADWAL LEWAT';
+      bannerDesc = 'Motor Anda telah melewati jadwal servis';
+      bannerIcon = 'alert-octagon';
+    } else if (overallStatus === 'urgent') {
       bannerBg = Colors.error;
       bannerTitle = 'PERHATIAN';
       bannerDesc = 'Ada komponen yang harus segera diganti';

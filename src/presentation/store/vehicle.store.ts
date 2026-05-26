@@ -47,7 +47,29 @@ export const useVehicleStore = create<VehicleStore>((set, get) => ({
       const raw = await VehicleService.getVehicles(userId);
       // Enrich setiap kendaraan dengan computed fields
       const vehicles = raw.map(vehicle => enrichVehicle(vehicle));
-      set({ vehicles, isLoading: false });
+
+      // Cek apakah ada kendaraan yang proyeksi KM-nya lebih besar dari KM saat ini di DB
+      const updatedVehicles = await Promise.all(
+        vehicles.map(async (vehicle) => {
+          const roundedProjected = Math.round(vehicle.projectedCurrentKm ?? vehicle.currentKm);
+          if (roundedProjected > vehicle.currentKm) {
+            try {
+              // Sinkronkan ke database
+              const updated = await VehicleService.updateVehicle(vehicle.id, {
+                currentKm: roundedProjected,
+              });
+              // Kembalikan kendaraan yang sudah di-enrich ulang
+              return enrichVehicle(updated);
+            } catch (err) {
+              console.error(`Failed to auto-sync odometer in DB for vehicle ${vehicle.id}:`, err);
+              return vehicle;
+            }
+          }
+          return vehicle;
+        })
+      );
+
+      set({ vehicles: updatedVehicles, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : i18n.t('messages.vehiclesLoadFailed');
       set({ error: message, isLoading: false });
